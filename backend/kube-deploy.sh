@@ -1,7 +1,8 @@
 #!/bin/sh
 set -e
 echo "*** Setting up Kubernetes access based on service account token ***"
-gcloud auth activate-service-account "${GCP_ACCOUNTNAME}" --key-file="${GCP_KEYFILE_PATH}" --project="${PROJECT_ID}"
+# gcloud auth activate-service-account "${GCP_ACCOUNTNAME}" --key-file="${GCP_KEYFILE_PATH}" --project="${PROJECT_ID}"
+gcloud auth activate-service-account "${GCP_ACCOUNTNAME}" --key-file=${GCP_KEYFILE_PATH} --project="${PROJECT_ID}"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone="${LOCATION}"
 echo "*** Creating deployment YAML files using envsubst ***"
 mkdir -p "./output"
