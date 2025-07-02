@@ -1,14 +1,19 @@
 # Use the confirmed OpenJDK 24 slim image as the base
 FROM openjdk:24-jdk-slim-bullseye
 
+# Install necessary tools: curl for downloading, and clean up apt lists to reduce image size
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Install Maven on top of the OpenJDK image
 ARG MAVEN_VERSION=3.9.6
 ARG USER_HOME_DIR="/root"
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
-ENV MAVEN_HOME /usr/share/maven
-ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
-# Add Maven to the PATH - THIS COMMENT MUST BE ON ITS OWN LINE!
-ENV PATH="${MAVEN_HOME}/bin:${PATH}" 
+
+# Use the recommended "key=value" format for ENV instructions (addresses warnings)
+ENV MAVEN_HOME=/usr/share/maven
+ENV MAVEN_CONFIG="${USER_HOME_DIR}/.m2"
+# Add Maven to the PATH
+ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 
 RUN set -eux; \
     curl -fsSL ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar -xz -C /usr/share/; \
