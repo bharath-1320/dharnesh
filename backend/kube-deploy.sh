@@ -1,8 +1,18 @@
 #!/bin/sh
 set -e
 echo "*** Setting up Kubernetes access based on service account token ***"
-# gcloud auth activate-service-account "${GCP_ACCOUNTNAME}" --key-file="${GCP_KEYFILE_PATH}" --project="${PROJECT_ID}"
-gcloud auth activate-service-account "${GCP_ACCOUNTNAME}" --key-file=${GCP_KEYFILE_PATH} --project="${PROJECT_ID}"
+
+# Accept the key file path as the first argument
+GCP_KEYFILE_PATH="$1"
+
+# Add debug inside the script to see what $GCP_KEYFILE_PATH is
+echo "DEBUG (in kube-deploy.sh): GCP_KEYFILE_PATH is: ${GCP_KEYFILE_PATH}"
+test -f "${GCP_KEYFILE_PATH}" && echo "DEBUG (in kube-deploy.sh): Key file exists and is a regular file." || echo "DEBUG (in kube-deploy.sh): Key file does NOT exist or is not a regular file."
+test -r "${GCP_KEYFILE_PATH}" && echo "DEBUG (in kube-deploy.sh): Key file is readable." || echo "DEBUG (in kube-deploy.sh): Key file is NOT readable."
+
+
+# Corrected: Use the passed argument for --key-file
+gcloud auth activate-service-account "${GCP_ACCOUNTNAME}" --key-file="${GCP_KEYFILE_PATH}" --project="${PROJECT_ID}"
 gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone="${LOCATION}"
 echo "*** Creating deployment YAML files using envsubst ***"
 mkdir -p "./output"
