@@ -5,7 +5,8 @@ FROM openjdk:24-jdk-slim-bullseye
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Install Maven on top of the OpenJDK image
-# CHANGED: Using Maven 3.9.5 as 3.9.6 seems to have a temporary 404 issue on the CDN
+# Using Maven 3.9.5 as 3.9.6 seems to have a temporary 404 issue on the CDN,
+# and both versions are encountering a 404 in your environment.
 ARG MAVEN_VERSION=3.9.5
 ARG USER_HOME_DIR="/root"
 ARG BASE_URL=https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries
@@ -17,7 +18,13 @@ ENV MAVEN_CONFIG="${USER_HOME_DIR}/.m2"
 ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 
 RUN set -eux; \
-    curl -fsSL ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz | tar -xz -C /usr/share/; \
+    # Use -v for verbose output, --output to save to a file, and -L to follow redirects.
+    # This will print detailed curl logs, including response headers, which is crucial for debugging the 404.
+    curl -v -L --output /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz; \
+    # Now, extract the downloaded file (assuming it's a valid tar.gz).
+    # The previous `gzip: stdin: unexpected end of file` error suggests an incomplete download,
+    # so we're saving to a file first.
+    tar -xz -C /usr/share/ -f /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz; \
     mv /usr/share/apache-maven-${MAVEN_VERSION} /usr/share/maven; \
     rm -f /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz
 
