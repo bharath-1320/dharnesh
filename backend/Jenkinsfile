@@ -3,15 +3,15 @@ pipeline {
 
   environment {
     SONAR_TOKEN   = credentials('sonar-token-id')
-    GCR_CREDS     = 'gcr-credentials' // This credential is used for Docker login to Artifact Registry
+    GCR_CREDS     = 'gcr-credentials'
     GCP_SA_KEY    = 'gcp-sa-key'
 
-    AR_PROJECT    = "abstract-tract-383807" // Your GCP Project ID
-    AR_REGION     = "europe-west2"          // Artifact Registry region (e.g., europe-west2)
-    AR_REPO_NAME  = "backend-images"        // Your Artifact Registry repository name (e.g., backend-images)
+    AR_PROJECT    = "abstract-tract-383807"
+    AR_REGION     = "europe-west2"
+    AR_REPO_NAME  = "backend-images"
     PROJECT_ID    = "${AR_PROJECT}"
     CLUSTER_NAME  = "manhattan-cluster"
-    LOCATION      = "europe-west2-a"        // GKE cluster zone
+    LOCATION      = "europe-west2-a"
 
     IMAGE_TAG     = "${BRANCH_NAME}-${BUILD_ID}"
 
@@ -26,26 +26,6 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout scm
-      }
-    }
-
-    stage('SonarQube Analysis') {
-      steps {
-        withSonarQubeEnv('SonarQube') {
-          sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
-        }
-      }
-    }
-
-    stage('Quality Gate') {
-      steps {
-        waitForQualityGate abortPipeline: true
-      }
-    }
-
-    stage('Build & Test') {
-      steps {
-        sh 'mvn clean package -DskipTests=false'
       }
     }
 
@@ -80,6 +60,30 @@ pipeline {
             ./kube-deploy.sh
           """
         }
+      }
+    }
+
+    stage('Build & Test') { // <--- Moved to here
+      steps {
+        withMaven(maven: 'M3') {
+          sh 'mvn clean package -DskipTests=false'
+        }
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+        withMaven(maven: 'M3') {
+          withSonarQubeEnv('SonarQube') {
+            sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
+          }
+        }
+      }
+    }
+
+    stage('Quality Gate') {
+      steps {
+        waitForQualityGate abortPipeline: true
       }
     }
   }
