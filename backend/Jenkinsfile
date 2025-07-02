@@ -33,15 +33,16 @@ pipeline {
       steps {
         script {
           docker.withRegistry("https://${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}", "${GCR_CREDS}") {
-            // Change these two lines:
-            sh 'chmod +x backend/gcp-docker.sh' // <--- Changed path
+            sh 'chmod +x backend/gcp-docker.sh'
+            // Separate the variable exports into one sh block
             sh """
               export AR_PROJECT="${AR_PROJECT}"
               export AR_REGION="${AR_REGION}"
               export AR_REPO_NAME="${AR_REPO_NAME}"
               export IMAGE_TAG="${IMAGE_TAG}"
-              backend/gcp-docker.sh            // <--- Changed path
             """
+            // Execute the script in a separate sh block
+            sh 'backend/gcp-docker.sh'
           }
         }
       }
@@ -50,8 +51,8 @@ pipeline {
     stage('Deploy to GKE') {
       steps {
         withCredentials([file(credentialsId: "${GCP_SA_KEY}", variable: 'KEYFILE_PATH')]) {
-          // Change these two lines as well, as kube-deploy.sh is also in 'backend/'
-          sh 'chmod +x backend/kube-deploy.sh' // <--- Changed path
+          sh 'chmod +x backend/kube-deploy.sh'
+          // Separate the variable exports into one sh block
           sh """
             export PROJECT_ID="${PROJECT_ID}"
             export CLUSTER_NAME="${CLUSTER_NAME}"
@@ -59,8 +60,9 @@ pipeline {
             export GCP_ACCOUNTNAME="${GCP_ACCOUNTNAME}"
             export GCP_KEYFILE_PATH="${KEYFILE_PATH}"
             export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:${IMAGE_TAG}"
-            backend/kube-deploy.sh             // <--- Changed path
           """
+          // Execute the script in a separate sh block
+          sh 'backend/kube-deploy.sh'
         }
       }
     }
