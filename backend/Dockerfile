@@ -5,9 +5,9 @@ FROM openjdk:24-jdk-slim-bullseye
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Install Maven on top of the OpenJDK image
-ARG MAVEN_VERSION=3.9.6
+# CHANGED: Using Maven 3.9.5 as 3.9.6 seems to have a temporary 404 issue on the CDN
+ARG MAVEN_VERSION=3.9.5
 ARG USER_HOME_DIR="/root"
-# CHANGE THIS LINE: Use a more reliable Apache Maven CDN
 ARG BASE_URL=https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 # Use the recommended "key=value" format for ENV instructions (addresses warnings)
