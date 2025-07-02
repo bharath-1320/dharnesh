@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 # Install Maven on top of the OpenJDK image
 ARG MAVEN_VERSION=3.9.6
 ARG USER_HOME_DIR="/root"
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
+# CHANGE THIS LINE: Use a more reliable Apache Maven CDN
+ARG BASE_URL=https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 # Use the recommended "key=value" format for ENV instructions (addresses warnings)
 ENV MAVEN_HOME=/usr/share/maven
