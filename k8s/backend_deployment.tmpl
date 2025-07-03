@@ -68,20 +68,30 @@ spec:
         ports:
         - containerPort: 8080 # Your application's port
         env:
+        # --- Database Configuration (from your-database-secret) ---
         - name: SPRING_DATASOURCE_URL
-          value: "jdbc:postgresql://your-database-host:5432/your-database-name" # Replace with your database URL
+          valueFrom:
+            secretKeyRef:
+              name: your-database-secret # Secret name
+              key: SPRING_DATASOURCE_URL # Key within that secret (as confirmed by describe secret)
         - name: SPRING_DATASOURCE_USERNAME
-          value: "your-database-username" # Replace with your database username
+          valueFrom:
+            secretKeyRef:
+              name: your-database-secret
+              key: SPRING_DATASOURCE_USERNAME # Key within that secret
         - name: SPRING_DATASOURCE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: your-database-secret # Replace with the name of your Kubernetes Secret
-              key: database-password # Replace with the key in your Secret that holds the password
-        - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
-          value: "org.postgresql.Driver" # This is the correct driver class for PostgreSQL
-        # You might also have OpenWeather API key
+              name: your-database-secret
+              key: SPRING_DATASOURCE_PASSWORD # <--- CORRECTED: This now matches your secret!
+        - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME # Changed hyphen to underscore for convention
+          value: "org.postgresql.Driver"
+
+        # --- OpenWeather API Key (from openweather-api-key-secret) ---
+        # Assuming your OpenWeather secret is named 'openweather-api-key-secret'
+        # and contains a key 'OPENWEATHER_API_KEY' as per previous instructions.
         - name: OPENWEATHER_API_KEY
           valueFrom:
             secretKeyRef:
-              name: your-api-secret # Replace with the name of your Kubernetes Secret for API keys
-              key: openweather-api-key # Replace with the key in your Secret that holds the API key
+              name: openweather-api-key-secret # Ensure this is the correct secret name
+              key: OPENWEATHER_API_KEY # Ensure this is the correct key within that secret
