@@ -58,7 +58,7 @@ pipeline {
             export LOCATION="${LOCATION}"
             export GCP_ACCOUNTNAME="${GCP_ACCOUNTNAME}"
             # REMOVE THIS LINE: export GCP_KEYFILE_PATH="${KEYFILE_PATH}"
-            // export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:${IMAGE_TAG}"
+            
             export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:latest"
             # KEEP DEBUG LINES FOR NOW TO CONFIRM KEYFILE_PATH is still valid here
             echo "DEBUG: GCP_KEYFILE_PATH is: \$KEYFILE_PATH" # Note: now using KEYFILE_PATH directly for debug
