@@ -52,21 +52,24 @@ pipeline {
       steps {
         withCredentials([file(credentialsId: "${GCP_SA_KEY}", variable: 'KEYFILE_PATH')]) {
           sh 'chmod +x backend/kube-deploy.sh'
+          
+          // CRITICAL CHANGE: Combine all exports and the script execution into ONE sh block
           sh """
+            # Export all necessary variables for kube-deploy.sh
             export PROJECT_ID="${PROJECT_ID}"
             export CLUSTER_NAME="${CLUSTER_NAME}"
             export LOCATION="${LOCATION}"
             export GCP_ACCOUNTNAME="${GCP_ACCOUNTNAME}"
-            # REMOVE THIS LINE: export GCP_KEYFILE_PATH="${KEYFILE_PATH}"
-            
             export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:latest"
-            # KEEP DEBUG LINES FOR NOW TO CONFIRM KEYFILE_PATH is still valid here
-            echo "DEBUG: GCP_KEYFILE_PATH is: \$KEYFILE_PATH" # Note: now using KEYFILE_PATH directly for debug
-            test -f "\$KEYFILE_PATH" && echo "DEBUG: Key file exists and is a regular file." || echo "DEBUG: Key file does NOT exist or is not a regular file."
-            test -r "\$KEYFILE_PATH" && echo "DEBUG: Key file is readable." || echo "DEBUG: Key file is NOT readable."
+
+            # Debugging for KEYFILE_PATH (can be removed once everything works)
+            echo "DEBUG: GCP_KEYFILE_PATH is: \${KEYFILE_PATH}"
+            test -f "\${KEYFILE_PATH}" && echo "DEBUG: Key file exists and is a regular file." || echo "DEBUG: Key file does NOT exist or is not a regular file."
+            test -r "\${KEYFILE_PATH}" && echo "DEBUG: Key file is readable." || echo "DEBUG: Key file is NOT readable."
+
+            # Execute the deployment script, passing KEYFILE_PATH as an argument
+            backend/kube-deploy.sh "\${KEYFILE_PATH}"
           """
-          // CHANGE THIS LINE: Pass KEYFILE_PATH as an argument
-          sh 'backend/kube-deploy.sh "${KEYFILE_PATH}"'
         }
       }
     }
