@@ -67,4 +67,39 @@ spec:
         image: ${IMAGE_URL} # <--- IMPORTANT: Ensure this line uses ${IMAGE_URL}
         ports:
         - containerPort: 8080 # Your application's port
+        env: # This section provides the environment variables to your application
+          # Database URL (can be directly in YAML as it's not sensitive)
+          - name: SPRING_DATASOURCE_URL
+            value: "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
+          # Database Driver (can be directly in YAML)
+          - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+            value: "org.postgresql.Driver"
+
+          # --- Retrieve sensitive values from Secrets ---
+          # (These Secrets must be created in your K8s cluster first - see previous steps)
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: creative-space-db-secret # Name of the secret you created
+                key: SPRING_DATASOURCE_USERNAME # Key within that secret
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: creative-space-db-secret # Name of the secret you created
+                key: SPRING_DATASOURCE_PASSWORD # Key within that secret
+
+          # Get OpenWeather API Key from its secret
+          - name: OPENWEATHER_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openweather-api-secret # Name of the secret you created
+                key: OPENWEATHER_API_KEY # Key within that secret
+        # Resource limits are still good practice, even without probes
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
         # Add other configurations like resources, env vars, etc.
