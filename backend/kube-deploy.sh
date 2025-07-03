@@ -31,8 +31,8 @@ envsubst < "k8s/backend_service.tmpl" > "./output/backend_service.yaml"
 
 # Assuming ingress.tmpl is also directly under k8s/ and the output name is ingress.yaml
 # If ingress.tmpl is not present in your k8s folder as per the screenshot, you might remove this line
-env IMAGE_URL="${IMAGE_URL}" \
-envsubst < "k8s/ingress.tmpl" > "./output/ingress.yaml"
+# env IMAGE_URL="${IMAGE_URL}" \
+# envsubst < "k8s/ingress.tmpl" > "./output/ingress.yaml"
 
 
 echo "*** Deploying Docker container and setting up the service and ingress ***"
