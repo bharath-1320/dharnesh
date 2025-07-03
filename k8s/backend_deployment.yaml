@@ -1,3 +1,51 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: manhattan-backend
+#   labels:
+#     app: backend
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: backend
+#   template:
+#     metadata:
+#       labels:
+#         app: backend
+#     spec:
+#       containers:
+#       - name: backend
+#         image: ${IMAGE_URL}
+#         ports:
+#         - containerPort: 8080
+#         readinessProbe:
+#           httpGet:
+#             path: /api/health
+#             port: 8080
+#           initialDelaySeconds: 10
+#           periodSeconds: 5
+#           timeoutSeconds: 3
+#           failureThreshold: 3
+#         livenessProbe:
+#           httpGet:
+#             path: /api/health
+#             port: 8080
+#           initialDelaySeconds: 30
+#           periodSeconds: 10
+#           timeoutSeconds: 5
+#           failureThreshold: 3
+#         resources:
+#           requests:
+#             cpu: "250m"
+#             memory: "512Mi"
+#           limits:
+#             cpu: "500m"
+#             memory: "1Gi"
+
+
+
+# k8s/Backend/backend-deployment.tmpl
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +53,7 @@ metadata:
   labels:
     app: backend
 spec:
-  replicas: 2
+  replicas: 1 # Or your desired replica count
   selector:
     matchLabels:
       app: backend
@@ -15,30 +63,8 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: ${IMAGE_URL}
+      - name: backend-container
+        image: ${IMAGE_URL} # <--- IMPORTANT: Ensure this line uses ${IMAGE_URL}
         ports:
-        - containerPort: 8080
-        readinessProbe:
-          httpGet:
-            path: /api/health
-            port: 8080
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        livenessProbe:
-          httpGet:
-            path: /api/health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        resources:
-          requests:
-            cpu: "250m"
-            memory: "512Mi"
-          limits:
-            cpu: "500m"
-            memory: "1Gi"
+        - containerPort: 8080 # Your application's port
+        # Add other configurations like resources, env vars, etc.
