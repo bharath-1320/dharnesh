@@ -37,8 +37,11 @@ envsubst < "k8s/backend_service.tmpl" > "./output/backend_service.yaml"
 
 echo "*** Deploying Docker container and setting up the service and ingress ***"
 # Note: --validate=false and --insecure-skip-tls-verify=true are not recommended for production
-kubectl apply -f "./output/backend_deployment.yaml" --validate=false --insecure-skip-tls-verify=true
-kubectl apply -f "./output/backend_service.yaml" --validate=false --insecure-skip-tls-verify=true
+# kubectl apply -f "./output/backend_deployment.yaml" --validate=false --insecure-skip-tls-verify=true
+# kubectl apply -f "./output/backend_service.yaml" --validate=false --insecure-skip-tls-verify=true
+kubectl apply -f "./output/backend_deployment.yaml"
+kubectl apply -f "./output/backend_service.yaml"
+
 # kubectl apply -f "./output/ingress.yaml" --validate=false --insecure-skip-tls-verify=true
 
 echo "Deployment commands executed successfully."
