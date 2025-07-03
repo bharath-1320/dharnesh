@@ -16,9 +16,9 @@ gcloud container clusters get-credentials "${CLUSTER_NAME}" --zone="${LOCATION}"
 
 echo "*** Creating deployment YAML files using envsubst ***"
 mkdir -p "./output"
-envsubst < "../k8s/Backend/backend_deployment.tmpl" > "./output/backend_deployment.yaml"
+envsubst < "../k8s/backend_deployment.tmpl" > "./output/backend_deployment.yaml"
 env IMAGE_URL="${IMAGE_URL}" \
-envsubst < "../k8s/Backend/backend_service.tmpl" > "./output/backend_service.yaml"
+envsubst < "../k8s/backend_service.tmpl" > "./output/backend_service.yaml"
 env IMAGE_URL="${IMAGE_URL}" \
 # env IMAGE_URL="${IMAGE_URL}" PROJECT_ID="${PROJECT_ID}" CLUSTER_NAME="${CLUSTER_NAME}" LOCATION="${LOCATION}" \
 # envsubst < "../k8s/Backend/backend-deployment.tmpl" > "./output/backend-deployment.yaml"
