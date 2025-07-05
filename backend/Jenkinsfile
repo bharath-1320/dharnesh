@@ -30,18 +30,18 @@ pipeline {
       }
     }
 
-    stage('Build & Test') {
-            steps {
-                // ADD THIS withMaven BLOCK HERE
-                withMaven(maven: 'M3') { // 'M3' should match the name configured in Jenkins > Manage Jenkins > Tools
-                    script {
-                        dir('backend') {
-                            sh "mvn clean verify"
-                        }
-                    }
-                }
-            }
-        }
+    // stage('Build & Test') {
+    //         steps {
+    //             // ADD THIS withMaven BLOCK HERE
+    //             withMaven(maven: 'M3') { // 'M3' should match the name configured in Jenkins > Manage Jenkins > Tools
+    //                 script {
+    //                     dir('backend') {
+    //                         sh "mvn clean verify"
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
 
     // stage('Build & Test') {
     //   steps {
@@ -52,14 +52,18 @@ pipeline {
     // }
     
     stage('SonarQube Analysis') {
-      steps {
+    steps {
         withMaven(maven: 'M3') {
-          withSonarQubeEnv('SonarQube') {
-            sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
-          }
+            script {
+                dir('backend') { // <--- CORRECT PLACEMENT: It now wraps the SonarQube environment and the Maven command
+                    withSonarQubeEnv('SonarQube') {
+                        sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
+                    }
+                }
+            }
         }
-      }
     }
+}
 
     stage('Docker Build & Push') {
       steps {
