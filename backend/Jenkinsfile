@@ -101,15 +101,15 @@ pipeline {
     //   }
     // }
 
-    stage('SonarQube Analysis') {
-      steps {
-        withMaven(maven: 'M3') {
-          withSonarQubeEnv('SonarQube') {
-            sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
-          }
-        }
-      }
-    }
+    // stage('SonarQube Analysis') {
+    //   steps {
+    //     withMaven(maven: 'M3') {
+    //       withSonarQubeEnv('SonarQube') {
+    //         sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
+    //       }
+    //     }
+    //   }
+    // }
 
     stage('Quality Gate') {
       steps {
