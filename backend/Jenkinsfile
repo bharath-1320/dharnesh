@@ -31,13 +31,25 @@ pipeline {
     }
 
     stage('Build & Test') {
-      steps {
-        withMaven(maven: 'M3') {
-          sh 'mvn clean package -DskipTests=false'
+            steps {
+                script { // Using script block as you might have multiple commands
+                    dir('backend') { // <--- ADD THIS LINE to change directory
+                        sh "mvn clean verify" // Or just 'mvn clean install' etc.
+                        // If you also run Spring Boot here
+                        // sh "mvn spring-boot:run" // If you're running it here for some reason
+                    } // <--- AND THIS CLOSING LINE
+                }
+            }
         }
-      }
-    }
 
+    // stage('Build & Test') {
+    //   steps {
+    //     withMaven(maven: 'M3') {
+    //       sh 'mvn clean package -DskipTests=false'
+    //     }
+    //   }
+    // }
+    
     stage('SonarQube Analysis') {
       steps {
         withMaven(maven: 'M3') {
