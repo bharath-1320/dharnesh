@@ -32,12 +32,13 @@ pipeline {
 
     stage('Build & Test') {
             steps {
-                script { // Using script block as you might have multiple commands
-                    dir('backend') { // <--- ADD THIS LINE to change directory
-                        sh "mvn clean verify" // Or just 'mvn clean install' etc.
-                        // If you also run Spring Boot here
-                        // sh "mvn spring-boot:run" // If you're running it here for some reason
-                    } // <--- AND THIS CLOSING LINE
+                // ADD THIS withMaven BLOCK HERE
+                withMaven(maven: 'M3') { // 'M3' should match the name configured in Jenkins > Manage Jenkins > Tools
+                    script {
+                        dir('backend') {
+                            sh "mvn clean verify"
+                        }
+                    }
                 }
             }
         }
