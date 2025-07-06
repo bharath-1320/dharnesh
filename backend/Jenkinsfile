@@ -13,6 +13,13 @@ pipeline {
     CLUSTER_NAME  = "cluster-1"
     LOCATION      = "us-west2-a"
     SONAR_TOKEN   = "sqp_8762f9c95e9335c04b4656b71ad9ea40b60fdca7"
+    SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
+    SPRING_DATASOURCE_USERNAME = "postgres.yfigmcasvrvubowgxauv"
+    SPRING_DATASOURCE_PASSWORD = "Leinster1492!!" // <-- DANGER: Hardcoded password! Move to Jenkins Credentials later!
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME = "org.postgresql.Driver" // Note: underscore for environment variable
+
+    // --- OpenWeather API Key ---
+    OPENWEATHER_API_KEY = "0c11eb81e09f3b3fa2b68762ce31a632" // Consider moving this to credentials too
 
     IMAGE_TAG     = "${BRANCH_NAME}-${BUILD_ID}"
 
