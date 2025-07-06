@@ -51,19 +51,30 @@ pipeline {
     //   }
     // }
     
-    stage('SonarQube Analysis') {
-    steps {
-        withMaven(maven: 'M3') {
-            script {
-                dir('backend') { // <--- CORRECT PLACEMENT: It now wraps the SonarQube environment and the Maven command
-                    withSonarQubeEnv('SonarQube') {
-                        sh 'mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
+    stage('Prepare for SonarQube') {
+            steps {
+                withMaven(maven: 'M3', jdk: 'JDK_24') { // <-- This should be set to 'JDK_24'
+                    script {
+                        dir('backend') {
+                            sh "mvn clean verify"
+                        }
                     }
                 }
             }
         }
-    }
-}
+        stage('SonarQube Analysis') {
+            steps {
+                withMaven(maven: 'M3', jdk: 'JDK_24') { // <-- And this one
+                    script {
+                        dir('backend') {
+                            withSonarQubeEnv('SonarQube') {
+                                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}'
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
     stage('Docker Build & Push') {
       steps {
