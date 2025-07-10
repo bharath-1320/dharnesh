@@ -39,13 +39,8 @@ pipeline {
 
     stage('Unit Test') {
       steps {
-        withMaven(maven: 'M3') {
+        withMaven(maven: 'M3', jdk: 'JDK_24') { // <-- Corrected with the `jdk` parameter
           dir('backend') {
-            // Diagnostic step to check Java version
-            sh 'echo "Java version from Jenkins agent:"'
-            sh 'java --version'
-
-            // Run Maven tests
             sh 'mvn test'
           }
         }
