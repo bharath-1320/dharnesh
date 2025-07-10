@@ -1,5 +1,6 @@
 package com.creativespacefinder.manhattan;
 
+import com.creativespacefinder.manhattan.repository.WeatherCacheRepository; // Import this
 import com.creativespacefinder.manhattan.service.WeatherForecastService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,9 @@ class CreativeSpaceFinderApplicationTests {
 
     @MockBean
     private WeatherForecastService weatherForecastService;
+
+    @MockBean // Add this line to mock the repository
+    private WeatherCacheRepository weatherCacheRepository;
 
     @Test
     void contextLoads() {
