@@ -36,6 +36,7 @@ pipeline {
         checkout scm
       }
     }
+  }
 
     // stage('Build & Test') {
     //         steps {
