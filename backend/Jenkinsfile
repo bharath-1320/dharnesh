@@ -39,8 +39,10 @@ pipeline {
 
     stage('Unit Test') {
       steps {
-        dir('backend') {
-          sh 'mvn test'
+        withMaven(maven: 'M3') {
+          dir('backend') {
+            sh 'mvn test'
+          }
         }
       }
     }
