@@ -1,6 +1,6 @@
 package com.creativespacefinder.manhattan;
 
-import com.creativespacefinder.manhattan.repository.WeatherCacheRepository; // Import this
+import com.creativespacefinder.manhattan.repository.WeatherCacheRepository;
 import com.creativespacefinder.manhattan.service.WeatherForecastService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,13 +15,16 @@ import org.springframework.test.context.TestPropertySource;
 })
 class CreativeSpaceFinderApplicationTests {
 
+    // Mocking external services to ensure the context loads without network calls
     @MockBean
     private WeatherForecastService weatherForecastService;
 
-    @MockBean // Add this line to mock the repository
+    // Mocking the repository to prevent the test from connecting to a real DB
+    @MockBean
     private WeatherCacheRepository weatherCacheRepository;
 
     @Test
     void contextLoads() {
+        // This test will now succeed if the application context can load
     }
 }
