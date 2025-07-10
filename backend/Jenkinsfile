@@ -39,9 +39,14 @@ pipeline {
 
     stage('Unit Test') {
       steps {
-        withMaven(maven: 'M3', jdk: 'JDK_24') { // <-- Corrected with the `jdk` parameter
+        withMaven(maven: 'M3', jdk: 'JDK_24') {
           dir('backend') {
-            sh 'mvn test'
+            sh """
+              mvn test \
+                -Dspring.datasource.url="${SPRING_DATASOURCE_URL}" \
+                -Dspring.datasource.username="${SPRING_DATASOURCE_USERNAME}" \
+                -Dspring.datasource.password="${SPRING_DATASOURCE_PASSWORD}"
+            """
           }
         }
       }
