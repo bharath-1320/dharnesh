@@ -42,7 +42,7 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_24') {
           dir('backend') {
             sh """
-              mvn test \
+              mvn test -Dspring.profiles.active=test \
                 -Dspring.datasource.url="${SPRING_DATASOURCE_URL}" \
                 -Dspring.datasource.username="${SPRING_DATASOURCE_USERNAME}" \
                 -Dspring.datasource.password="${SPRING_DATASOURCE_PASSWORD}"
