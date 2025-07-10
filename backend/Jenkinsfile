@@ -57,7 +57,16 @@ pipeline {
     //     }
     //   }
     // }
+    stage('Unit Test') {
+      steps {
+        // Run tests from the 'backend' subdirectory
+        dir('backend') {
+          sh 'mvn test'
+        }
+      }
     
+
+
     stage('Prepare for SonarQube') {
             steps {
                 withMaven(maven: 'M3', jdk: 'JDK_24') { // <-- This should be set to 'JDK_24'
