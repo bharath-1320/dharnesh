@@ -1,96 +1,125 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-    <groupId>com.example</groupId>
-    <artifactId>creative-space-finder</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>creative-space-finder</name>
-    <description>creative-space-finder</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
-    <properties>
-        <java.version>24</java.version>
-    </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
+pipeline {
+  agent any
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.jts</groupId>
-            <artifactId>jts-core</artifactId>
-            <version>1.19.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-    </dependencies>
+  environment {
+    // SONAR_TOKEN   = credentials('sonar-token-id')
+    GCR_CREDS     = 'gcr-credentials'
+    GCP_SA_KEY    = 'gcp-sa-key'
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <checkstyleVersion>10.12.3</checkstyleVersion>
-                    <configLocation>google_checks.xml</configLocation>
-                    <failOnViolation>true</failOnViolation>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    AR_PROJECT    = "abstract-tract-383807"
+    AR_REGION     = "europe-west2"
+    AR_REPO_NAME  = "backend-images"
+    PROJECT_ID    = "${AR_PROJECT}"
+    CLUSTER_NAME  = "cluster-1"
+    LOCATION      = "us-west2-a"
+    SONAR_TOKEN   = "sqp_8762f9c95e9335c04b4656b71ad9ea40b60fdca7"
+    SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
+    SPRING_DATASOURCE_USERNAME = "postgres.yfigmcasvrvubowgxauv"
+    SPRING_DATASOURCE_PASSWORD = "Leinster1492!!"
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME = "org.postgresql.Driver"
 
-</project>
+    // --- OpenWeather API Key ---
+    OPENWEATHER_API_KEY = "0c11eb81e09f3b3fa2b68762ce31a632"
+
+    IMAGE_TAG     = "${BRANCH_NAME}-${BUILD_ID}"
+
+    GCP_ACCOUNTNAME = "your-service-account@${AR_PROJECT}.iam.gserviceaccount.com"
+  }
+
+  triggers {
+    pollSCM('H/5 * * * *')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Unit Test') {
+      steps {
+        withMaven(maven: 'M3') {
+          dir('backend') {
+            // Diagnostic step to check Java version
+            sh 'echo "Java version from Jenkins agent:"'
+            sh 'java --version'
+
+            // Run Maven tests
+            sh 'mvn test'
+          }
+        }
+      }
+    }
+
+    stage('Prepare for SonarQube') {
+      steps {
+        withMaven(maven: 'M3', jdk: 'JDK_24') {
+          script {
+            dir('backend') {
+              sh "mvn clean verify"
+            }
+          }
+        }
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+        withMaven(maven: 'M3', jdk: 'JDK_24') {
+          script {
+            dir('backend') {
+              withSonarQubeEnv('SonarQube') {
+                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('Docker Build & Push') {
+      steps {
+        script {
+          docker.withRegistry("https://${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}", "${GCR_CREDS}") {
+            sh 'chmod +x backend/gcp-docker.sh'
+            sh """
+              export AR_PROJECT="${AR_PROJECT}"
+              export AR_REGION="${AR_REGION}"
+              export AR_REPO_NAME="${AR_REPO_NAME}"
+              export IMAGE_TAG="${IMAGE_TAG}"
+              backend/gcp-docker.sh
+            """
+          }
+        }
+      }
+    }
+
+    stage('Deploy to GKE') {
+      steps {
+        withCredentials([file(credentialsId: "${GCP_SA_KEY}", variable: 'KEYFILE_PATH')]) {
+          sh 'chmod +x backend/kube-deploy.sh'
+          sh """
+            export PROJECT_ID="${PROJECT_ID}"
+            export CLUSTER_NAME="${CLUSTER_NAME}"
+            export LOCATION="${LOCATION}"
+            export GCP_ACCOUNTNAME="${GCP_ACCOUNTNAME}"
+            export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:latest"
+            backend/kube-deploy.sh "\${KEYFILE_PATH}"
+          """
+        }
+      }
+    }
+
+    stage('Quality Gate') {
+      steps {
+        waitForQualityGate abortPipeline: true
+      }
+    }
+  }
+
+  post {
+    success { echo "✅ Backend deployed: ${IMAGE_TAG}" }
+    failure { echo "❌ Backend pipeline failed" }
+  }
+}
