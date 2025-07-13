@@ -2,7 +2,6 @@ pipeline {
   agent any
 
   environment {
-    // SONAR_TOKEN   = credentials('sonar-token-id')
     JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
     GCR_CREDS     = 'gcr-credentials'
     GCP_SA_KEY    = 'gcp-sa-key'
@@ -14,16 +13,15 @@ pipeline {
     CLUSTER_NAME  = "cluster-1"
     LOCATION      = "us-west2-a"
     SONAR_TOKEN   = "sqp_8762f9c95e9335c04b4656b71ad9ea40b60fdca7"
+
+    // These are only for runtime, not test
     SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
     SPRING_DATASOURCE_USERNAME = "postgres.yfigmcasvrvubowgxauv"
     SPRING_DATASOURCE_PASSWORD = "Leinster1492!!"
     SPRING_DATASOURCE_DRIVER_CLASS_NAME = "org.postgresql.Driver"
-
-    // --- OpenWeather API Key ---
     OPENWEATHER_API_KEY = "0c11eb81e09f3b3fa2b68762ce31a632"
 
     IMAGE_TAG     = "${BRANCH_NAME}-${BUILD_ID}"
-
     GCP_ACCOUNTNAME = "your-service-account@${AR_PROJECT}.iam.gserviceaccount.com"
   }
 
@@ -42,8 +40,15 @@ pipeline {
       steps {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
-            sh "mvn clean test"
-            
+            // Unset conflicting production DB env vars for the test context
+            sh '''
+              unset SPRING_DATASOURCE_URL
+              unset SPRING_DATASOURCE_USERNAME
+              unset SPRING_DATASOURCE_PASSWORD
+              unset SPRING_DATASOURCE_DRIVER_CLASS_NAME
+              unset OPENWEATHER_API_KEY
+              mvn clean test -Dspring.profiles.active=test -e
+            '''
           }
         }
       }
