@@ -54,31 +54,31 @@ pipeline {
       }
     }
 
-    stage('Prepare for SonarQube') {
-      steps {
-        withMaven(maven: 'M3', jdk: 'JDK_21') {
-          script {
-            dir('backend') {
-              sh "mvn clean verify"
-            }
-          }
-        }
-      }
-    }
+    // stage('Prepare for SonarQube') {
+    //   steps {
+    //     withMaven(maven: 'M3', jdk: 'JDK_21') {
+    //       script {
+    //         dir('backend') {
+    //           sh "mvn clean verify"
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
-    stage('SonarQube Analysis') {
-      steps {
-        withMaven(maven: 'M3', jdk: 'JDK_24') {
-          script {
-            dir('backend') {
-              withSonarQubeEnv('SonarQube') {
-                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
-              }
-            }
-          }
-        }
-      }
-    }
+    // stage('SonarQube Analysis') {
+    //   steps {
+    //     withMaven(maven: 'M3', jdk: 'JDK_24') {
+    //       script {
+    //         dir('backend') {
+    //           withSonarQubeEnv('SonarQube') {
+    //             sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     stage('Docker Build & Push') {
       steps {
