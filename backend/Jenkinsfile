@@ -42,7 +42,7 @@ pipeline {
       steps {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
-            sh "mvn clean test -Dspring.profiles.active=test -e"
+            sh "mvn clean test -Dspring.profiles.active=test -Dspring.datasource.driver-class-name=org.h2.Driver -e"
             
           }
         }
