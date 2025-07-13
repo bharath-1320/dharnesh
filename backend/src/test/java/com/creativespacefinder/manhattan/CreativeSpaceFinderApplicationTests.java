@@ -70,9 +70,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test") // ✅ This is what tells Spring to load application-test.yaml
+@TestPropertySource("classpath:application-test.yaml") 
 class CreativeSpaceFinderApplicationTests {
 
     @MockBean
