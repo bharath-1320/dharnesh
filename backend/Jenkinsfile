@@ -39,7 +39,7 @@ pipeline {
 
     stage('Unit Test') {
       steps {
-        withMaven(maven: 'M3', jdk: 'JDK_24') {
+        withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
             sh "mvn test -Dspring.profiles.active=test"
           }
@@ -49,7 +49,7 @@ pipeline {
 
     stage('Prepare for SonarQube') {
       steps {
-        withMaven(maven: 'M3', jdk: 'JDK_24') {
+        withMaven(maven: 'M3', jdk: 'JDK_21') {
           script {
             dir('backend') {
               sh "mvn clean verify"
