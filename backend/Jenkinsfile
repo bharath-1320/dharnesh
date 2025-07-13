@@ -3,6 +3,7 @@ pipeline {
 
   environment {
     // SONAR_TOKEN   = credentials('sonar-token-id')
+    JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
     GCR_CREDS     = 'gcr-credentials'
     GCP_SA_KEY    = 'gcp-sa-key'
 
@@ -41,8 +42,8 @@ pipeline {
       steps {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
-            sh "mvn test -Dspring.profiles.active=test"
-            sh "mvn test -Dspring.profiles.active=test"
+            sh "mvn clean test -Dspring.profiles.active=test"
+            
           }
         }
       }
