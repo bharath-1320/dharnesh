@@ -59,7 +59,7 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           script {
             dir('backend') {
-              sh "mvn clean verify -DskipTests"
+              sh "mvn clean verify "
             }
           }
         }
