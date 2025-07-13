@@ -42,6 +42,7 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
             sh "mvn test -Dspring.profiles.active=test"
+            sh "mvn test -Dspring.profiles.active=test"
           }
         }
       }
