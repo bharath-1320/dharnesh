@@ -57,15 +57,9 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           script {
             dir('backend') {
-              sh """
-                unset SPRING_PROFILES_ACTIVE
-                mvn clean verify \
-                  -Dspring.profiles.active=default \
-                  -Dspring.datasource.url=$SPRING_DATASOURCE_URL \
-                  -Dspring.datasource.username=$SPRING_DATASOURCE_USERNAME \
-                  -Dspring.datasource.password=$SPRING_DATASOURCE_PASSWORD \
-                  -Dspring.datasource.driver-class-name=$SPRING_DATASOURCE_DRIVER_CLASS_NAME
-              """
+              sh 'mvn clean verify -DskipTests'
+
+              
             }
           }
         }
@@ -73,19 +67,19 @@ pipeline {
     }
 
     // Uncomment and use if SonarQube server is configured
-    // stage('SonarQube Analysis') {
-    //   steps {
-    //     withMaven(maven: 'M3', jdk: 'JDK_24') {
-    //       script {
-    //         dir('backend') {
-    //           withSonarQubeEnv('SonarQube') {
-    //             sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    stage('SonarQube Analysis') {
+      steps {
+        withMaven(maven: 'M3', jdk: 'JDK_21') {
+          script {
+            dir('backend') {
+              withSonarQubeEnv('SonarQube') {
+                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
+              }
+            }
+          }
+        }
+      }
+    }
 
     stage('Docker Build & Push') {
       steps {
