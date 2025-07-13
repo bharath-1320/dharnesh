@@ -14,7 +14,6 @@ pipeline {
     LOCATION      = "us-west2-a"
     SONAR_TOKEN   = "sqp_8762f9c95e9335c04b4656b71ad9ea40b60fdca7"
 
-    // These are only for runtime, not test
     SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
     SPRING_DATASOURCE_USERNAME = "postgres.yfigmcasvrvubowgxauv"
     SPRING_DATASOURCE_PASSWORD = "Leinster1492!!"
@@ -40,7 +39,6 @@ pipeline {
       steps {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
-            // Unset conflicting production DB env vars for the test context
             sh '''
               unset SPRING_DATASOURCE_URL
               unset SPRING_DATASOURCE_USERNAME
@@ -53,9 +51,6 @@ pipeline {
         }
       }
     }
-    
-
-
 
     stage('Prepare for SonarQube') {
       steps {
@@ -63,15 +58,21 @@ pipeline {
           script {
             dir('backend') {
               sh """
-            unset SPRING_PROFILES_ACTIVE
-            mvn clean verify -Dspring.profiles.active=default -Dspring.datasource.url=$SPRING_DATASOURCE_URL -Dspring.datasource.username=$SPRING_DATASOURCE_USERNAME -Dspring.datasource.password=$SPRING_DATASOURCE_PASSWORD -Dspring.datasource.driver-class-name=$SPRING_DATASOURCE_DRIVER_CLASS_NAME
-          """
+                unset SPRING_PROFILES_ACTIVE
+                mvn clean verify \
+                  -Dspring.profiles.active=default \
+                  -Dspring.datasource.url=$SPRING_DATASOURCE_URL \
+                  -Dspring.datasource.username=$SPRING_DATASOURCE_USERNAME \
+                  -Dspring.datasource.password=$SPRING_DATASOURCE_PASSWORD \
+                  -Dspring.datasource.driver-class-name=$SPRING_DATASOURCE_DRIVER_CLASS_NAME
+              """
             }
           }
         }
       }
     }
 
+    // Uncomment and use if SonarQube server is configured
     // stage('SonarQube Analysis') {
     //   steps {
     //     withMaven(maven: 'M3', jdk: 'JDK_24') {
@@ -113,7 +114,7 @@ pipeline {
             export LOCATION="${LOCATION}"
             export GCP_ACCOUNTNAME="${GCP_ACCOUNTNAME}"
             export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:latest"
-            backend/kube-deploy.sh "\${KEYFILE_PATH}"
+            backend/kube-deploy.sh "${KEYFILE_PATH}"
           """
         }
       }
@@ -127,7 +128,11 @@ pipeline {
   }
 
   post {
-    success { echo "✅ Backend deployed: ${IMAGE_TAG}" }
-    failure { echo "❌ Backend pipeline failed" }
+    success {
+      echo "✅ Backend deployed: ${IMAGE_TAG}"
+    }
+    failure {
+      echo "❌ Backend pipeline failed"
+    }
   }
 }
