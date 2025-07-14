@@ -71,8 +71,8 @@ class LocationActivityScoreRepositoryTest {
     }
 
     private void createAndPersistScore(int eventId, EventLocation location, Activity activity, TaxiZone taxiZone,
-                                       LocalDate date, LocalTime time, BigDecimal culturalScore, BigDecimal crowdScore,
-                                       BigDecimal museScore, BigDecimal historicalScore) {
+                                        LocalDate date, LocalTime time, BigDecimal culturalScore, BigDecimal crowdScore,
+                                        BigDecimal museScore, BigDecimal historicalScore) {
         LocationActivityScore score = new LocationActivityScore();
         score.setEventId(eventId);
         score.setLocation(location);
@@ -88,9 +88,9 @@ class LocationActivityScoreRepositoryTest {
     }
 
     @Test
-    void findTop5ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc() {
+    void findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc() { // CHANGED METHOD NAME HERE
         List<LocationActivityScore> results = locationActivityScoreRepository
-                .findTop5ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc(
+                .findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc( // CHANGED METHOD CALL HERE
                         hikingActivity.getName(), testDate, testTime
                 );
 
@@ -145,9 +145,9 @@ class LocationActivityScoreRepositoryTest {
     }
 
     @Test
-    void findTop5ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc_NoData() {
+    void findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc_NoData() { // CHANGED METHOD NAME HERE
         List<LocationActivityScore> results = locationActivityScoreRepository
-                .findTop5ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc(
+                .findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc( // CHANGED METHOD CALL HERE
                         "NonExistentActivity", testDate, testTime
                 );
         assertNotNull(results);

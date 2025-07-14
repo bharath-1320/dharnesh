@@ -13,7 +13,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable; // Import Pageable
 
+import java.time.LocalDate; // Added import for LocalDate
 import java.time.LocalDateTime;
+import java.time.LocalTime; // Added import for LocalTime
 import java.util.Collections;
 import java.math.BigDecimal; // Import BigDecimal
 
@@ -51,8 +53,8 @@ public class LocationRecommendationServiceTest {
     @Test
     void testGetLocationRecommendations_NoMLDataFound() {
         // Mock the repository to return an empty list, simulating no ML data
-        when(locationActivityScoreRepository.findTop5ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc(
-                anyString(), any(), any()))
+        when(locationActivityScoreRepository.findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc( // CHANGED findTop5 to findTop10
+                anyString(), any(LocalDate.class), any(LocalTime.class))) // CHANGED any() to any(LocalDate.class) and any(LocalTime.class)
                 .thenReturn(Collections.emptyList());
 
         // Mock the historical fallback to also return empty, explicitly using any(Pageable.class)
@@ -73,8 +75,8 @@ public class LocationRecommendationServiceTest {
         assertTrue(response.getLocations().isEmpty());
 
         // Verify that the mocked methods were called as expected, explicitly using any(Pageable.class)
-        verify(locationActivityScoreRepository).findTop5ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc(
-                anyString(), any(), any());
+        verify(locationActivityScoreRepository).findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc( // CHANGED findTop5 to findTop10
+                anyString(), any(LocalDate.class), any(LocalTime.class)); // CHANGED any() to any(LocalDate.class) and any(LocalTime.class)
         verify(locationActivityScoreRepository).findTopByActivityNameIgnoreDateTime(anyString(), any(Pageable.class));
         verify(weatherForecastService).getWeatherForDateTime(testDateTime);
     }
