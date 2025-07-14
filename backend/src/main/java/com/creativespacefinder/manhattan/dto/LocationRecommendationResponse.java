@@ -24,9 +24,6 @@ public class LocationRecommendationResponse {
     @JsonProperty("longitude")
     private BigDecimal longitude;
 
-    @JsonProperty("combinedScore")
-    private BigDecimal combinedScore;
-
     @JsonProperty("activityScore")
     private BigDecimal activityScore;
 
@@ -46,14 +43,12 @@ public class LocationRecommendationResponse {
     public LocationRecommendationResponse() {}
 
     public LocationRecommendationResponse(UUID id, String zoneName, BigDecimal latitude, BigDecimal longitude,
-                                          BigDecimal combinedScore, BigDecimal activityScore,
-                                          BigDecimal museScore, BigDecimal crowdScore,
-                                          Integer estimatedCrowdNumber) {
+                                          BigDecimal activityScore, BigDecimal museScore,
+                                          BigDecimal crowdScore, Integer estimatedCrowdNumber) {
         this.id = id;
         this.zoneName = zoneName;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.combinedScore = combinedScore;
         this.activityScore = activityScore;
         this.museScore = museScore;
         this.crowdScore = crowdScore;
@@ -73,9 +68,6 @@ public class LocationRecommendationResponse {
 
     public BigDecimal getLongitude() { return longitude; }
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
-
-    public BigDecimal getCombinedScore() { return combinedScore; }
-    public void setCombinedScore(BigDecimal combinedScore) { this.combinedScore = combinedScore; }
 
     public BigDecimal getActivityScore() { return activityScore; }
     public void setActivityScore(BigDecimal activityScore) { this.activityScore = activityScore; }
@@ -114,9 +106,9 @@ public class LocationRecommendationResponse {
             this.crowdScore = crowdScore;
 
             if (museScore != null) {
-                this.explanation = "Combined score: 60% MuseScore + 30% Activity Score + 10% Crowd Score (inverted)";
+                this.explanation = "Calculated from ML .pkl file";
             } else {
-                this.explanation = "Combined score: 70% Activity Score + 30% Crowd Score (inverted) - MuseScore not available";
+                this.explanation = "Calculation already logged in database";
             }
         }
 
