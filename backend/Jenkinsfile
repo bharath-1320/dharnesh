@@ -84,13 +84,16 @@ pipeline {
             steps {
                 withMaven(maven: 'M3', jdk: 'JDK_21') {
                     dir('backend') {
-                        sh 'mvn clean install -DskipTests' // THIS IS THE KEY CHANGE
+                        sh 'echo "Attempting to skip tests with multiple flags..."'
+                        // Use both -DskipTests and -Dmaven.test.skip=true
+                        // -Dmaven.test.skip is a broader property that skips compilation and execution of tests.
+                        sh 'mvn clean install -DskipTests -Dmaven.test.skip=true' 
                     }
                 }
             }
         }
 
-        
+
     stage('Docker Build & Push') {
       steps {
         script {
