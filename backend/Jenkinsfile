@@ -24,9 +24,7 @@ pipeline {
     GCP_ACCOUNTNAME = "your-service-account@${AR_PROJECT}.iam.gserviceaccount.com"
   }
 
-  triggers {
-    pollSCM('H/5 * * * *')
-  }
+  
 
   stages {
     stage('Checkout') {
@@ -52,46 +50,35 @@ pipeline {
     //   }
     // }
 
-    // stage('Prepare for SonarQube') {
-    //   steps {
-    //     withMaven(maven: 'M3', jdk: 'JDK_21') {
-    //       script {
-    //         dir('backend') {
-    //           sh 'mvn clean verify -DskipTests'
+    stage('Prepare for SonarQube') {
+      steps {
+        withMaven(maven: 'M3', jdk: 'JDK_21') {
+          script {
+            dir('backend') {
+              sh 'mvn clean verify -DskipTests'
 
               
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
-    // // Uncomment and use if SonarQube server is configured
-    // stage('SonarQube Analysis') {
-    //   steps {
-    //     withMaven(maven: 'M3', jdk: 'JDK_21') {
-    //       script {
-    //         dir('backend') {
-    //           withSonarQubeEnv('SonarQube') {
-    //             sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    stage('Maven Build (Skip Tests)') {
-            steps {
-                withMaven(maven: 'M3', jdk: 'JDK_21') {
-                    dir('backend') {
-                        sh 'echo "Attempting to skip tests with multiple flags..."'
-                        // Use both -DskipTests and -Dmaven.test.skip=true
-                        // -Dmaven.test.skip is a broader property that skips compilation and execution of tests.
-                        sh 'mvn clean install -DskipTests -Dmaven.test.skip=true' 
-                    }
-                }
             }
+          }
         }
+      }
+    }
+
+    // Uncomment and use if SonarQube server is configured
+    stage('SonarQube Analysis') {
+      steps {
+        withMaven(maven: 'M3', jdk: 'JDK_21') {
+          script {
+            dir('backend') {
+              withSonarQubeEnv('SonarQube') {
+                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=backend-quality -Dsonar.projectName="backend-quality"'
+              }
+            }
+          }
+        }
+      }
+    }
+
 
 
     stage('Docker Build & Push') {
