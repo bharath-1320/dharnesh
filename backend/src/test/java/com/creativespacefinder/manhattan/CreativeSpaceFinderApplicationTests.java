@@ -1,6 +1,5 @@
 package com.creativespacefinder.manhattan;
 
-// import com.creativespacefinder.manhattan.repository.WeatherCacheRepository; // <-- REMOVE or comment out this line
 import com.creativespacefinder.manhattan.service.WeatherForecastService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

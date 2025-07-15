@@ -11,6 +11,7 @@ import com.creativespacefinder.manhattan.repository.ActivityRepository;
 import com.creativespacefinder.manhattan.repository.LocationActivityScoreRepository;
 import com.creativespacefinder.manhattan.repository.MLPredictionLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,98 +45,90 @@ public class LocationRecommendationService {
         Activity activity = activityRepository.findByName(activityName)
                 .orElseThrow(() -> new RuntimeException("Activity not found: " + activityName));
 
-        // Fetch top candidates (250) to increase pool size
-        // Consider increasing this number if you still get too few unique locations
-        List<LocationActivityScore> candidates =
-                locationActivityScoreRepository.findTopByActivityNameIgnoreDateTime(
-                        activityName, PageRequest.of(0, 200)); // You can increase this to 500 or 1000 if needed
+        List<LocationActivityScore> universe =
+                locationActivityScoreRepository
+                        .findDistinctLocationsByActivityName(
+                                activityName,
+                                PageRequest.of(0, 500)
+                        );
 
-        if (candidates.isEmpty()) {
+        if (universe.isEmpty()) {
             return new RecommendationResponse(Collections.emptyList(), activityName, requestDateTime.toString());
         }
 
-        // --- Batch ML Model Prediction ---
-        List<Map<String, Object>> mlRequestBodies = new ArrayList<>();
-        for (LocationActivityScore score : candidates) {
-            Map<String, Object> body = new HashMap<>();
-            body.put("latitude", score.getLocation().getLatitude().doubleValue());
-            body.put("longitude", score.getLocation().getLongitude().doubleValue());
-            body.put("hour", requestDateTime.getHour());
-            body.put("month", requestDateTime.getMonthValue());
-            body.put("day", requestDateTime.getDayOfMonth());
-            body.put("cultural_activity_prefered", activityName);
-            mlRequestBodies.add(body);
+        Collections.shuffle(universe);
+        List<LocationActivityScore> sample = universe.stream()
+                .limit(20)
+                .collect(Collectors.toList());
+
+        List<Map<String,Object>> mlPayload = sample.stream().map(s -> {
+            Map<String,Object> m = new HashMap<>();
+            m.put("latitude",  s.getLocation().getLatitude().doubleValue());
+            m.put("longitude", s.getLocation().getLongitude().doubleValue());
+            m.put("hour",      requestDateTime.getHour());
+            m.put("month",     requestDateTime.getMonthValue());
+            m.put("day",       requestDateTime.getDayOfMonth());
+            m.put("cultural_activity_prefered", activityName);
+            return m;
+        }).collect(Collectors.toList());
+
+        PredictionResponse[] predictions = callMLModelBatch(mlPayload);
+
+        int limit = Math.min(predictions.length, sample.size());
+        Map<UUID, BigDecimal> mlScores = new HashMap<>();
+        for (int i = 0; i < limit; i++) {
+            LocationActivityScore las = sample.get(i);
+            PredictionResponse p    = predictions[i];
+            BigDecimal cult = BigDecimal.valueOf(p.getCreativeActivityScore());
+            BigDecimal crowd = BigDecimal.valueOf(p.getCrowdScore());
+            BigDecimal muse = cult.multiply(BigDecimal.valueOf(0.6))
+                    .add(crowd.multiply(BigDecimal.valueOf(0.4)));
+            las.setCulturalActivityScore(cult);
+            las.setCrowdScore(crowd);
+            las.setEstimatedCrowdNumber(p.getEstimatedCrowdNumber());
+            las.setMuseScore(muse);
+            mlScores.put(las.getLocation().getId(), cult);
         }
+        List<LocationActivityScore> processed = sample.subList(0, limit);
+        locationActivityScoreRepository.saveAll(processed);
 
-        // Call ML model once for all candidates
-        PredictionResponse[] predictions = callMLModelBatch(mlRequestBodies);
-
-        // --- Process Predictions and Update Scores ---
-        // changed for unit testing
-        int limit = Math.min(predictions.length, candidates.size());
-
-        Map<UUID, BigDecimal> mlCulturalScores = new HashMap<>();
-        for (int i = 0; i < limit; i++) {                                      // bound‑checked loop
-            LocationActivityScore score = candidates.get(i);
-            PredictionResponse   p     = predictions[i];
-
-            BigDecimal culturalScore = BigDecimal.valueOf(p.getCreativeActivityScore());
-            BigDecimal crowdScore    = BigDecimal.valueOf(p.getCrowdScore());
-            BigDecimal museScore     = culturalScore.multiply(BigDecimal.valueOf(0.6))
-                    .add(crowdScore.multiply(BigDecimal.valueOf(0.4)));
-
-            score.setCulturalActivityScore(culturalScore);
-            score.setCrowdScore(crowdScore);
-            score.setEstimatedCrowdNumber(p.getEstimatedCrowdNumber());
-            score.setMuseScore(museScore);
-
-            mlCulturalScores.put(score.getLocation().getId(), culturalScore);
-        }
-        candidates = candidates.subList(0, limit);
-
-        // --- Batch Database Update ---
-        locationActivityScoreRepository.saveAll(candidates); // Save all updated scores in one go
-
-        // Log batch
         MLPredictionLog log = new MLPredictionLog();
         log.setId(UUID.randomUUID());
         log.setModelVersion("1.0");
         log.setPredictionType("location_recommendation");
-        log.setRecordsProcessed(candidates.size());
-        log.setRecordsUpdated(candidates.size()); // All candidates processed and updated
+        log.setRecordsProcessed(processed.size());
+        log.setRecordsUpdated(processed.size());
         log.setPredictionDate(OffsetDateTime.now());
         mlPredictionLogRepository.save(log);
 
-        // Sort all candidates by museScore
-        List<LocationActivityScore> sorted = candidates.stream()
+        List<LocationRecommendationResponse> mapped = processed.stream()
                 .sorted(Comparator.comparing(LocationActivityScore::getMuseScore).reversed())
-                .collect(Collectors.toList());
-
-        // Map to DTOs
-        List<LocationRecommendationResponse> mapped = sorted.stream()
-                .map(score -> new LocationRecommendationResponse(
-                        score.getLocation().getId(),
-                        score.getLocation().getLocationName(),
-                        score.getLocation().getLatitude(),
-                        score.getLocation().getLongitude(),
-                        mlCulturalScores.get(score.getLocation().getId()),
-                        score.getMuseScore(),
-                        score.getCrowdScore(),
-                        score.getEstimatedCrowdNumber()
+                .map(las -> new LocationRecommendationResponse(
+                        las.getLocation().getId(),
+                        las.getLocation().getLocationName(),
+                        las.getLocation().getLatitude(),
+                        las.getLocation().getLongitude(),
+                        mlScores.get(las.getLocation().getId()),
+                        las.getMuseScore(),
+                        las.getCrowdScore(),
+                        las.getEstimatedCrowdNumber()
                 ))
                 .collect(Collectors.toList());
 
-        // Deduplicate by lat/lon keeping the highest museScore for each coordinate pair
-        Map<String, LocationRecommendationResponse> bestPerCoord = new HashMap<>();
-        for (LocationRecommendationResponse loc : mapped) {
-            String key = loc.getLatitude().toPlainString() + ":" + loc.getLongitude().toPlainString(); // Use toPlainString for consistent keys
-            bestPerCoord.merge(key, loc, (existing, incoming) ->
-                    incoming.getMuseScore().compareTo(existing.getMuseScore()) > 0 ? incoming : existing
+        System.out.println("Mapped entries: " + mapped.size());
+        for (LocationRecommendationResponse lr : mapped) {
+            System.out.println(lr.getLatitude() + ", " + lr.getLongitude());
+        }
+
+        Map<String,LocationRecommendationResponse> best = new HashMap<>();
+        for (LocationRecommendationResponse lr : mapped) {
+            String key = lr.getLatitude().toPlainString() + ":" + lr.getLongitude().toPlainString();
+            best.merge(key, lr, (oldV, newV) ->
+                    newV.getMuseScore().compareTo(oldV.getMuseScore()) > 0 ? newV : oldV
             );
         }
 
-        // Take top 10 of the deduplicated values
-        List<LocationRecommendationResponse> top10 = bestPerCoord.values().stream()
+        List<LocationRecommendationResponse> top10 = best.values().stream()
                 .sorted(Comparator.comparing(LocationRecommendationResponse::getMuseScore).reversed())
                 .limit(10)
                 .collect(Collectors.toList());
@@ -143,12 +136,10 @@ public class LocationRecommendationService {
         return new RecommendationResponse(top10, activityName, requestDateTime.toString());
     }
 
-    // Modified to send a list of requests and receive a list of predictions
-    // changed from private to protected by dharnesh for unit testing
-    protected PredictionResponse[] callMLModelBatch(List<Map<String, Object>> requestBodies) {
-        RestTemplate rest = new RestTemplate();
-        String url = "http://localhost:8000/predict_batch"; // New endpoint for batch prediction
-        return rest.postForObject(url, requestBodies, PredictionResponse[].class );
+    @Cacheable(cacheNames = "mlPredictions", key = "#bodies.hashCode()")
+    protected PredictionResponse[] callMLModelBatch(List<Map<String,Object>> bodies) {
+        RestTemplate r = new RestTemplate();
+        return r.postForObject("http://localhost:8000/predict_batch", bodies, PredictionResponse[].class);
     }
 
     public List<Activity> getAllActivities() {
