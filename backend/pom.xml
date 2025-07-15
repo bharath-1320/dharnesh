@@ -149,7 +149,7 @@
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
-                    <skip>true</skip> </configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
 
