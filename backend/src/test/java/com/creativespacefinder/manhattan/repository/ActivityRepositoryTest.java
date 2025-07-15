@@ -1,5 +1,7 @@
 package com.creativespacefinder.manhattan.repository;
 
+import org.springframework.test.context.ActiveProfiles;   // added
+
 import com.creativespacefinder.manhattan.entity.Activity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 @DataJpaTest
 class ActivityRepositoryTest {
 

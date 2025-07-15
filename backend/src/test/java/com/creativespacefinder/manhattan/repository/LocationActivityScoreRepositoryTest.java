@@ -20,6 +20,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
+
 class LocationActivityScoreRepositoryTest {
 
     @Autowired
@@ -154,3 +155,5 @@ class LocationActivityScoreRepositoryTest {
         assertTrue(results.isEmpty());
     }
 }
+
+

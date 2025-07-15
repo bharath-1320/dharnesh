@@ -21,6 +21,7 @@
 
     <properties>
         <java.version>21</java.version>
+        <maven.testcontainers.version>1.19.6</maven.testcontainers.version>
     </properties>
 
     <dependencies>
@@ -60,6 +61,29 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency> <!-- ✱ ADDED -->
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- AssertJ for fluent assertions -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.25.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Test-containers – PostgreSQL -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${maven.testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -105,9 +129,30 @@
                     <useFile>false</useFile>
                     <redirectTestOutputToFile>false</redirectTestOutputToFile>
                     <includes>
+                        <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
                 </configuration>
+            </plugin>
+
+            <!-- Integration tests (Failsafe) -->
+            <plugin> <!-- ✱ ADDED BLOCK -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*IT.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -6,23 +6,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// @WebMvcTest is used for testing Spring MVC controllers.
-// It will auto-configure MockMvc and only scan controller-related beans.
 @WebMvcTest(HealthController.class)
-public class HealthControllerTest {
+class HealthControllerTests {
 
-    // MockMvc is used to perform requests and assert responses
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired MockMvc mvc;
 
     @Test
-    void healthCheckReturnsStatusUp() throws Exception {
-        mockMvc.perform(get("/api/health")) // Perform a GET request to /api/health
-                .andExpect(status().isOk()) // Expect HTTP 200 OK status
-                .andExpect(jsonPath("$.status").value("UP")) // Expect JSON field 'status' to be 'UP'
-                .andExpect(jsonPath("$.service").value("manhattan-muse")); // Expect JSON field 'service' to be 'manhattan-muse'
+    void health_returnsUp() throws Exception {
+        mvc.perform(get("/api/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
     }
 }

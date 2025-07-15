@@ -71,14 +71,17 @@ public class LocationRecommendationService {
         PredictionResponse[] predictions = callMLModelBatch(mlRequestBodies);
 
         // --- Process Predictions and Update Scores ---
+        // changed for unit testing
+        int limit = Math.min(predictions.length, candidates.size());
+
         Map<UUID, BigDecimal> mlCulturalScores = new HashMap<>();
-        for (int i = 0; i < candidates.size(); i++) {
+        for (int i = 0; i < limit; i++) {                                      // bound‑checked loop
             LocationActivityScore score = candidates.get(i);
-            PredictionResponse p = predictions[i];
+            PredictionResponse   p     = predictions[i];
 
             BigDecimal culturalScore = BigDecimal.valueOf(p.getCreativeActivityScore());
-            BigDecimal crowdScore = BigDecimal.valueOf(p.getCrowdScore());
-            BigDecimal museScore = culturalScore.multiply(BigDecimal.valueOf(0.6))
+            BigDecimal crowdScore    = BigDecimal.valueOf(p.getCrowdScore());
+            BigDecimal museScore     = culturalScore.multiply(BigDecimal.valueOf(0.6))
                     .add(crowdScore.multiply(BigDecimal.valueOf(0.4)));
 
             score.setCulturalActivityScore(culturalScore);
@@ -88,6 +91,7 @@ public class LocationRecommendationService {
 
             mlCulturalScores.put(score.getLocation().getId(), culturalScore);
         }
+        candidates = candidates.subList(0, limit);
 
         // --- Batch Database Update ---
         locationActivityScoreRepository.saveAll(candidates); // Save all updated scores in one go
@@ -140,7 +144,8 @@ public class LocationRecommendationService {
     }
 
     // Modified to send a list of requests and receive a list of predictions
-    private PredictionResponse[] callMLModelBatch(List<Map<String, Object>> requestBodies) {
+    // changed from private to protected by dharnesh for unit testing
+    protected PredictionResponse[] callMLModelBatch(List<Map<String, Object>> requestBodies) {
         RestTemplate rest = new RestTemplate();
         String url = "http://localhost:8000/predict_batch"; // New endpoint for batch prediction
         return rest.postForObject(url, requestBodies, PredictionResponse[].class );

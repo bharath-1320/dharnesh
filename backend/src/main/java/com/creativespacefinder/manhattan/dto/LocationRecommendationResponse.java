@@ -100,6 +100,9 @@ public class LocationRecommendationResponse {
         @JsonProperty("explanation")
         private String explanation;
 
+        //added by dharnesh
+        public ScoreBreakdown() {}
+
         public ScoreBreakdown(BigDecimal activityScore, BigDecimal museScore, BigDecimal crowdScore) {
             this.activityScore = activityScore;
             this.museScore = museScore;
