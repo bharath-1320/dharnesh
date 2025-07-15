@@ -80,7 +80,17 @@ pipeline {
     //     }
     //   }
     // }
+    stage('Maven Build (Skip Tests)') {
+            steps {
+                withMaven(maven: 'M3', jdk: 'JDK_21') {
+                    dir('backend') {
+                        sh 'mvn clean install -DskipTests' // THIS IS THE KEY CHANGE
+                    }
+                }
+            }
+        }
 
+        
     stage('Docker Build & Push') {
       steps {
         script {
