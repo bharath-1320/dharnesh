@@ -107,12 +107,12 @@
             </resource>
         </resources>
 
-        <testResources>
+        <!-- <testResources>
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>false</filtering>
             </testResource>
-        </testResources>
+        </testResources> -->
 
         <plugins>
             <!-- Spring Boot Plugin -->
