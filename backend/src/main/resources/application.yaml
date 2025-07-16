@@ -11,13 +11,14 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER-CLASS-NAME}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      leak-detection-threshold: 60000
 
   jpa:
     hibernate:
@@ -26,9 +27,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
 
 openweather:
-    api-key: ${OPENWEATHER_API_KEY}
+  api-key: ${OPENWEATHER_API_KEY}
 
 server:
   port: 8080
@@ -40,3 +43,4 @@ logging:
     com.creativespacefinder.manhattan: INFO
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
+    com.zaxxer.hikari: DEBUG
