@@ -50,3 +50,4 @@ spring:
 openweather:
   api-key: dummy-api-key
 
+
