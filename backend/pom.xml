@@ -107,12 +107,12 @@
             </resource>
         </resources>
 
-        <!-- <testResources>
+        <testResources>
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>false</filtering>
             </testResource>
-        </testResources> -->
+        </testResources>
 
         <plugins>
             <!-- Spring Boot Plugin -->
@@ -130,11 +130,6 @@
                     <source>21</source>
                     <target>21</target>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>none</phase> </execution>
-                </executions>
             </plugin>
 
             <!-- Unit Testing Plugin -->
@@ -149,7 +144,6 @@
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
-                    <skip>true</skip>
                 </configuration>
             </plugin>
 

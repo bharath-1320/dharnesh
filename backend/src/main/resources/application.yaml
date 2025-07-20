@@ -116,14 +116,6 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
     hikari:
-<<<<<<< Updated upstream
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 20000
-      idle-timeout: 300000
-      max-lifetime: 900000
-      leak-detection-threshold: 60000
-=======
       maximum-pool-size: 1
       minimum-idle: 0
       connection-timeout: 10000
@@ -140,7 +132,6 @@ spring:
   cache:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=24h
->>>>>>> Stashed changes
 
   jpa:
     hibernate:
@@ -152,8 +143,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           time_zone: UTC
-<<<<<<< Updated upstream
-=======
           batch_size: 20
         connection:
           provider_disables_autocommit: false
@@ -164,7 +153,6 @@ spring:
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
->>>>>>> Stashed changes
 
 openweather:
   api-key: ${OPENWEATHER_API_KEY}
@@ -181,11 +169,6 @@ server:
 logging:
   level:
     com.creativespacefinder.manhattan: INFO
-<<<<<<< Updated upstream
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    com.zaxxer.hikari: DEBUG
-=======
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
     org.hibernate.orm.deprecation: WARN
@@ -202,4 +185,3 @@ management:
       show-details: always
     shutdown:
       enabled: true
->>>>>>> Stashed changes
