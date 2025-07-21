@@ -1,7 +1,6 @@
 pipeline {
   agent any
-
-  environment {
+  environment {
     // JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
     JAVA_HOME = '/opt/jdk/openjdk-21'
     GCR_CREDS     = 'gcr-credentials'
