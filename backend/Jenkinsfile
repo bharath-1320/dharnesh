@@ -74,6 +74,7 @@ pipeline {
           script {
             dir('backend') {
               withSonarQubeEnv('SonarQube') {
+                sh 'echo "DEBUG: SonarQube analysis branch name will be: ${BRANCH_NAME}"'
                 sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=manhattan-muse -Dsonar.projectName="manhattan-muse -Dsonar.branch.name=${BRANCH_NAME}"'
               }
             }
