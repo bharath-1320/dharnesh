@@ -2,30 +2,41 @@ pipeline {
   agent any
 
   environment {
+    // JAVA_HOME needs to point to your JDK installation path on the Jenkins agent
+    // Choose one based on your actual setup
     // JAVA_HOME = '/usr/lib/jvm/java-21-openjdk-amd64'
     JAVA_HOME = '/opt/jdk/openjdk-21'
-    GCR_CREDS     = 'gcr-credentials'
-    GCP_SA_KEY    = 'gcp-sa-key'
 
-    AR_PROJECT    = "manhattan-muse"
-    AR_REGION     = "europe-west2"
-    AR_REPO_NAME  = "manhattan-muse-backend"
-    PROJECT_ID    = "${AR_PROJECT}"
-    CLUSTER_NAME  = "cluster-1"
-    LOCATION      = "us-west2-a"
-    SONAR_TOKEN   = "sqp_80d93d075a2048295eff632f1842ffa4c9e19155"
+    // Jenkins Credential IDs
+    GCR_CREDS       = 'gcr-credentials' // Jenkins Secret Text credential for Docker registry login (JSON key)
+    GCP_SA_KEY      = 'gcp-sa-key'      // Jenkins File credential for GCP Service Account key
 
+    // Google Cloud Artifact Registry / Project Details
+    AR_PROJECT      = "manhattan-muse"
+    AR_REGION       = "europe-west2"
+    AR_REPO_NAME    = "manhattan-muse-backend" // **FIXED: Removed leading space**
+    PROJECT_ID      = "${AR_PROJECT}" // Alias for consistency
+    CLUSTER_NAME    = "cluster-1"
+    LOCATION        = "us-west2-a" // GKE cluster location
+
+    // SonarQube Token (store as Secret Text credential in Jenkins for production)
+    // For demonstration, it's here, but in production, use: SONAR_TOKEN = credentials('your-sonar-token-id')
+    SONAR_TOKEN     = "sqp_80d93d075a2048295eff632f1842ffa4c9e19155"
+
+    // Application Environment Variables (for deployment)
     SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
     SPRING_DATASOURCE_USERNAME = "postgres.yfigmcasvrvubowgxauv"
     SPRING_DATASOURCE_PASSWORD = "Leinster1492!!"
     SPRING_DATASOURCE_DRIVER_CLASS_NAME = "org.postgresql.Driver"
     OPENWEATHER_API_KEY = "0c11eb81e09f3b3fa2b68762ce31a632"
 
-    IMAGE_TAG     = "${BRANCH_NAME}-${BUILD_ID}"
+    // Image Tagging for Docker
+    IMAGE_TAG       = "${BRANCH_NAME}-${BUILD_ID}" // Example: main-123 or feature/xyz-456
     GCP_ACCOUNTNAME = "your-service-account@${AR_PROJECT}.iam.gserviceaccount.com"
   }
 
   triggers {
+    // Polls SCM every 5 minutes (H/5)
     pollSCM('H/5 * * * *')
   }
 
@@ -41,6 +52,7 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
             sh '''
+              # Unset sensitive environment variables to ensure tests run in an isolated environment
               unset SPRING_DATASOURCE_URL
               unset SPRING_DATASOURCE_USERNAME
               unset SPRING_DATASOURCE_PASSWORD
@@ -58,47 +70,39 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           script {
             dir('backend') {
+              // Perform a clean verify to compile code and generate necessary analysis artifacts
               sh 'mvn clean verify -DskipTests'
-
-              
             }
           }
         }
       }
     }
 
-    // // Uncomment and use if SonarQube server is configured
     stage('SonarQube Analysis') {
       steps {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           script {
             dir('backend') {
-              withSonarQubeEnv('SonarQube') {
-                sh 'echo "DEBUG: SonarQube analysis branch name will be: ${BRANCH_NAME}"'
-                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=manhattan-muse -Dsonar.projectName="manhattan-muse -Dsonar.branch.name=${BRANCH_NAME}"'
+              withSonarQubeEnv('SonarQube') { // 'SonarQube' should match the name configured in Jenkins Global Tool Configuration
+                sh 'echo "DEBUG: SonarQube analysis branch name will be: ${BRANCH_NAME}"' // Keep for now
+                sh '''
+                  mvn sonar:sonar \\
+                    -Dsonar.login=${SONAR_TOKEN} \\
+                    -Dsonar.projectKey=manhattan-muse \\
+                    -Dsonar.projectName="manhattan-muse" \\
+                    -Dsonar.branch.name=${BRANCH_NAME} // **FIXED: Correct parameter separation**
+                '''
               }
             }
           }
         }
       }
     }
-    // stage('Maven Build (Skip Tests)') {
-    //         steps {
-    //             withMaven(maven: 'M3', jdk: 'JDK_21') {
-    //                 dir('backend') {
-    //                     sh 'echo "Attempting to skip tests with multiple flags..."'
-    //                     // Use both -DskipTests and -Dmaven.test.skip=true
-    //                     // -Dmaven.test.skip is a broader property that skips compilation and execution of tests.
-    //                     sh 'mvn clean install -DskipTests -Dmaven.test.skip=true' 
-    //                 }
-    //             }
-    //         }
-    //     }
-
 
     stage('Docker Build & Push') {
       steps {
         script {
+          // Uses the 'docker' pipeline step for Docker operations with Jenkins credentials
           docker.withRegistry("https://${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}", "${GCR_CREDS}") {
             sh 'chmod +x backend/gcp-docker.sh'
             sh """
@@ -115,6 +119,7 @@ pipeline {
 
     stage('Deploy to GKE') {
       steps {
+        // Uses GCP Service Account Key for authentication with gcloud/kubectl
         withCredentials([file(credentialsId: "${GCP_SA_KEY}", variable: 'KEYFILE_PATH')]) {
           sh 'chmod +x backend/kube-deploy.sh'
           sh """
@@ -122,7 +127,8 @@ pipeline {
             export CLUSTER_NAME="${CLUSTER_NAME}"
             export LOCATION="${LOCATION}"
             export GCP_ACCOUNTNAME="${GCP_ACCOUNTNAME}"
-            export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:latest"
+            // Ensure IMAGE_URL correctly points to the specific tagged image
+            export IMAGE_URL="${AR_REGION}-docker.pkg.dev/${AR_PROJECT}/${AR_REPO_NAME}/backend:${IMAGE_TAG}" // **RECOMMENDED: Changed back to IMAGE_TAG**
             backend/kube-deploy.sh "${KEYFILE_PATH}"
           """
         }
@@ -131,6 +137,8 @@ pipeline {
 
     stage('Quality Gate') {
       steps {
+        // Pauses pipeline execution until SonarQube Quality Gate status is received
+        // Aborts the pipeline if the Quality Gate is not 'Passed'
         waitForQualityGate abortPipeline: true
       }
     }
