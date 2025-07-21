@@ -21,7 +21,7 @@ pipeline {
 
     // SonarQube Token (store as Secret Text credential in Jenkins for production)
     // For demonstration, it's here, but in production, use: SONAR_TOKEN = credentials('your-sonar-token-id')
-    SONAR_TOKEN     = "sqp_80d93d075a2048295eff632f1842ffa4c9e19155"
+    SONAR_TOKEN     = "sqp_e1c281e30ecdc4b0539e0af3f95f034faf9eb3a6"
 
     // Application Environment Variables (for deployment)
     SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
@@ -89,8 +89,8 @@ pipeline {
                   mvn sonar:sonar \\
                     -Dsonar.login=${SONAR_TOKEN} \\
                     -Dsonar.projectKey=manhattan-muse \\
-                    -Dsonar.projectName="manhattan-muse" \\
-                    -Dsonar.branch.name=${BRANCH_NAME} // **FIXED: Correct parameter separation**
+                    -Dsonar.projectName="manhattan" \\
+                    -Dsonar.branch.name=${BRANCH_NAME} // 
                 '''
               }
             }
