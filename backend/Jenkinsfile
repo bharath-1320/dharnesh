@@ -74,7 +74,7 @@ pipeline {
           script {
             dir('backend') {
               withSonarQubeEnv('SonarQube') {
-                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=manhattan-muse -Dsonar.projectName="manhattan-muse"'
+                sh 'mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.projectKey=manhattan-muse -Dsonar.projectName="manhattan-muse -Dsonar.branch.name=${BRANCH_NAME}"'
               }
             }
           }
