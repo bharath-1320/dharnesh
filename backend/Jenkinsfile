@@ -68,13 +68,12 @@ pipeline {
         withMaven(maven: 'M3', jdk: 'JDK_21') {
           dir('backend') {
             withSonarQubeEnv('SonarQube') {
-              sh 'echo "DEBUG: SonarQube analysis branch name will be: ${BRANCH_NAME}"'
+              
               sh '''
                 mvn sonar:sonar \
                   -Dsonar.login=${SONAR_TOKEN} \
                   -Dsonar.projectKey=manhattan \
                   -Dsonar.projectName="manhattan" \
-                  -Dsonar.branch.name=${BRANCH_NAME}
               '''
             }
           }
