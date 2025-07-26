@@ -97,12 +97,34 @@ pipeline {
     // }
 
 
+    // stage('SonarQube Analysis') {
+    //   steps {
+    //     dir('backend') {
+    //       withSonarQubeEnv('SonarQube') {
+    //         sh '''
+    //           mvn clean \
+    //             org.jacoco:jacoco-maven-plugin:prepare-agent \
+    //             verify \
+    //             org.jacoco:jacoco-maven-plugin:report \
+    //             sonar:sonar \
+    //             -Dsonar.login=${SONAR_TOKEN} \
+    //             -Dsonar.projectKey=manhattan \
+    //             -Dsonar.projectName="manhattan" \
+    //             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+    //         '''
+    //       }
+    //     }
+    //   }
+    // }
+
+
     stage('SonarQube Analysis') {
       steps {
-        dir('backend') {
-          withSonarQubeEnv('SonarQube') {
-            sh '''
-              mvn clean \
+        withMaven(maven: 'M3', jdk: 'JDK_21') {
+          dir('backend') {
+            withSonarQubeEnv('SonarQube') {
+              sh '''
+                mvn clean \
                 org.jacoco:jacoco-maven-plugin:prepare-agent \
                 verify \
                 org.jacoco:jacoco-maven-plugin:report \
@@ -111,11 +133,13 @@ pipeline {
                 -Dsonar.projectKey=manhattan \
                 -Dsonar.projectName="manhattan" \
                 -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-            '''
+              '''
+            }
           }
         }
       }
     }
+
 
     // Uncomment below if skipping tests explicitly needed
     /*
