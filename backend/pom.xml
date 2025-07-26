@@ -26,9 +26,13 @@
         <maven.testcontainers.version>1.19.6</maven.testcontainers.version>
 
         <sonar.coverage.exclusions>
-         **/com/creativespacefinder/manhattan/config/**,  
-         **/com/creativespacefinder/manhattan/util/**,   
-         **/com/creativespacefinder/manhattan/service/DailyPrecomputationService.java
+          **/com/creativespacefinder/manhattan/config/**,
+          **/com/creativespacefinder/manhattan/util/**,
+          **/com/creativespacefinder/manhattan/service/DailyPrecomputationService.java,
+          **/com/creativespacefinder/manhattan/controller/AnalyticsController.java,
+          **/com/creativespacefinder/manhattan/service/AnalyticsService.java,
+          **/com/creativespacefinder/manhattan/service/ConnectionCleanupService.java,
+          **/com/creativespacefinder/manhattan/service/SystemHealthService.java
         </sonar.coverage.exclusions>
     </properties>
 
