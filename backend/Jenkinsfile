@@ -68,29 +68,50 @@ pipeline {
       }
     }
 
-    stage('Prepare for SonarQube') {
-      steps {
-        withMaven(maven: 'M3', jdk: 'JDK_21') {
-          dir('backend') {
-            sh 'mvn clean verify -Dmaven.test.skip=true'
-          }
-        }
-      }
-    }
+    // stage('Prepare for SonarQube') {
+    //   steps {
+    //     withMaven(maven: 'M3', jdk: 'JDK_21') {
+    //       dir('backend') {
+    //         sh 'mvn clean verify -Dmaven.test.skip=true'
+    //       }
+    //     }
+    //   }
+    // }
+
+    // stage('SonarQube Analysis') {
+    //   steps {
+    //     withMaven(maven: 'M3', jdk: 'JDK_21') {
+    //       dir('backend') {
+    //         withSonarQubeEnv('SonarQube') {
+              
+    //           sh '''
+    //             mvn sonar:sonar \
+    //               -Dsonar.login=${SONAR_TOKEN} \
+    //               -Dsonar.projectKey=manhattan \
+    //               -Dsonar.projectName="manhattan" \
+    //           '''
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+
 
     stage('SonarQube Analysis') {
       steps {
-        withMaven(maven: 'M3', jdk: 'JDK_21') {
-          dir('backend') {
-            withSonarQubeEnv('SonarQube') {
-              
-              sh '''
-                mvn sonar:sonar \
-                  -Dsonar.login=${SONAR_TOKEN} \
-                  -Dsonar.projectKey=manhattan \
-                  -Dsonar.projectName="manhattan" \
-              '''
-            }
+        dir('backend') {
+          withSonarQubeEnv('SonarQube') {
+            sh '''
+              mvn clean \
+                org.jacoco:jacoco-maven-plugin:prepare-agent \
+                verify \
+                org.jacoco:jacoco-maven-plugin:report \
+                sonar:sonar \
+                -Dsonar.login=${SONAR_TOKEN} \
+                -Dsonar.projectKey=manhattan \
+                -Dsonar.projectName="manhattan" \
+                -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+            '''
           }
         }
       }
