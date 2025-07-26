@@ -1,5 +1,5 @@
 import '../styles/about.css';
-import '../globals.css';
+
 import Link from 'next/link';
 import Image from'next/image';
 import Button from './button.js';
@@ -39,7 +39,7 @@ export default function About(){
                         <Image className='photo' src='/about-pic-rahul.png' alt='ra' width={150} height={150}/>
                         <Image className='photo' src='/about-pic-jaxton.png' alt='j' width={150} height={150}/>
                         <Image className='photo' src='/about-pic-mark.png' alt='m' width={150} height={150}/>
-                        <Image className='photo' src='/about-pic-darnesh.png' alt='dar' width={150} height={150}/>
+                        <Image className='photo' src='/about-pic-dharnesh.png' alt='dar' width={150} height={150}/>
                     </div>
                 </aside>
                 <aside className='split-right'>

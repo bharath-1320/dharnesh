@@ -1,38 +1,42 @@
-# Maven build output
-/target/
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
-/src/test/**/target/
+!src/test/**/target/
 
 # Wrapper binaries
 .mvn/wrapper/maven-wrapper.jar
 
-# IntelliJ IDEA
-/.idea/
-/*.iml
-/*.iws
-/*.ipr
-
 # Spring Tool Suite
-/.classpath
-/.factorypath
-/.project
-/.settings/
-/.springBeans
-/.sts4-cache
-/.apt_generated
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
 
-# NetBeans
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-/build/
-/src/main/**/build/
-/src/test/**/build/
+build/
+!**/src/main/**/build/
+!src/test/**/build/
 
-# VS Code
-/.vscode/
+### VS Code ###
+.vscode/
 
-# Environment files
+### .env ###
 .env
+
+## Jenkins due to passwords/usernames ##
+Jenkinsfile

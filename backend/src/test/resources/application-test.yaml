@@ -36,6 +36,30 @@
 #  api-key: "dummy-api-key"
 
 #--------------------------------
+#spring:
+#  datasource:
+#    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password: ""
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
+#    database-platform: org.hibernate.dialect.H2Dialect
+#
+##ml:
+##  predict:
+##    url: http://localhost:8080/predict_batch
+#
+#openweather:
+#  api-key: dummy-api-key
+#
+#logging:
+#  level:
+#    root: WARN
+#    com.creativespacefinder.manhattan: DEBUG
+
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false
@@ -46,7 +70,30 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
 
+# Admin configuration for tests
+admin.username: test-admin
+admin.password: test-password
+admin.password.hash: test-password-hash
+
+# ML service configuration for tests
+ml:
+  predict:
+    url: http://localhost:8089/predict_batch
+
+# OpenWeather configuration
 openweather:
-  api-key: dummy-api-key
+  api-key: test-api-key
 
+# Logging configuration
+logging:
+  level:
+    root: WARN
+    com.creativespacefinder.manhattan: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Disable security for easier testing (if applicable)
+management:
+  security:
+    enabled: false

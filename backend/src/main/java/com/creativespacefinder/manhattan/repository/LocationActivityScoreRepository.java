@@ -1,3 +1,4 @@
+// src/main/java/com/creativespacefinder/manhattan/repository/LocationActivityScoreRepository.java
 package com.creativespacefinder.manhattan.repository;
 
 import com.creativespacefinder.manhattan.entity.LocationActivityScore;
@@ -15,53 +16,107 @@ import java.util.UUID;
 @Repository
 public interface LocationActivityScoreRepository extends JpaRepository<LocationActivityScore, UUID> {
 
-    // Top 5 results by activity, date, and time (ordered by MuseScore)
-    @Query("""
-        SELECT l FROM LocationActivityScore l
-        WHERE l.activity.name = :activityName
-          AND l.eventDate = :eventDate
-          AND l.eventTime = :eventTime
-        ORDER BY l.museScore DESC NULLS LAST
-        """)
-    List<LocationActivityScore> findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc(
-            @Param("activityName") String activityName,
-            @Param("eventDate") LocalDate eventDate,
-            @Param("eventTime") LocalTime eventTime
-    );
 
-    // Query to fetch unique locations by coordinates, ordered by historicalActivityScore
-    // This returns a projection of LocationActivityScore entities, ensuring uniqueness by location_id
+     // //(added by Dharnesh for unit testing) Top 10 scores for an activity at a specific date/time, sorted by museScore desc
+     //    List<LocationActivityScore> findTop10ByActivityNameAndEventDateAndEventTimeOrderByMuseScoreDesc(
+     //            String activityName,
+     //            LocalDate eventDate,
+     //            LocalTime eventTime
+     //    );
+     //    //(added by Dharnesh for unit testing) Top scores for an activity (ignoring date/time) using the given Pageable
+     //    List<LocationActivityScore> findByActivityNameAndHistoricalActivityScoreNotNullOrderByHistoricalActivityScoreDesc(
+     //            String activityName,
+     //            Pageable pageable
+     //    );
+        // //(added by Dharnesh for unit testing) Top scores for an activity (ignoring date/time) using the given Pageable
+     
+        //   @Query("""
+        //        SELECT l
+        //        FROM LocationActivityScore l
+        //        WHERE LOWER(l.activity.name) = LOWER(:activityName)
+        //        ORDER BY l.museScore DESC
+        //        """)
+        //   Page<LocationActivityScore> findTopByActivityNameIgnoreDateTime(
+        //           @Param("activityName") String activityName,
+        //           Pageable pageable);
+
+
+    // ——————————————————————————————————————————
+    // PERFORMANCE FIX: Two-step query to avoid DISTINCT + FETCH issues
+    // ——————————————————————————————————————————
+    @Query(value = """
+        SELECT las.id FROM location_activity_scores las
+        WHERE las.id IN (
+            SELECT DISTINCT ON (las2.location_id) las2.id
+            FROM location_activity_scores las2
+            JOIN activities a ON las2.activity_id = a.id
+            WHERE LOWER(a.name) = LOWER(:activityName)
+            ORDER BY las2.location_id, las2.historical_activity_score DESC NULLS LAST
+        )
+        ORDER BY las.historical_activity_score DESC NULLS LAST
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<String> findDistinctLocationIdsByActivityName(@Param("activityName") String activityName, @Param("limit") int limit);
+
     @Query("""
         SELECT las FROM LocationActivityScore las
-        WHERE las.activity.name = :activityName
-        GROUP BY las.location.id, las.id, las.activity.id, las.taxiZone.id, las.eventDate, las.eventTime, las.historicalTaxiZoneCrowdScore, las.historicalActivityScore, las.culturalActivityScore, las.crowdScore, las.museScore, las.estimatedCrowdNumber, las.mlPredictionDate, las.createdAt, las.updatedAt, las.eventId
-        ORDER BY las.historicalActivityScore DESC NULLS LAST
+        JOIN FETCH las.location
+        JOIN FETCH las.taxiZone
+        WHERE las.id IN :ids
         """)
-    List<LocationActivityScore> findTopByActivityNameIgnoreDateTime(
-            @Param("activityName") String activityName,
-            Pageable pageable
+    List<LocationActivityScore> findByIdsWithEagerLoading(@Param("ids") List<UUID> ids);
+
+    // ——————————————————————————————————————————
+    // Keep original method as backup (you can remove this later)
+    // ——————————————————————————————————————————
+    @Query(value = """
+    SELECT * FROM location_activity_scores las
+    WHERE las.id IN (
+        SELECT DISTINCT ON (las2.location_id) las2.id
+        FROM location_activity_scores las2
+        JOIN activities a ON las2.activity_id = a.id
+        WHERE LOWER(a.name) = LOWER(:activityName)
+        ORDER BY las2.location_id, las2.historical_activity_score DESC NULLS LAST
+    )
+    ORDER BY las.historical_activity_score DESC NULLS LAST
+    """, nativeQuery = true)
+    List<LocationActivityScore> findDistinctLocationsByActivityName(@Param("activityName") String activityName, Pageable pageable);
+
+    // ——————————————————————————————————————————
+    @Query("""
+        SELECT DISTINCT l.eventDate
+          FROM LocationActivityScore l
+         WHERE l.activity.name = :activityName
+    """)
+    List<LocalDate> findAvailableDatesByActivity(
+            @Param("activityName") String activityName
     );
 
-    // Available dates for the activity
-    @Query("SELECT DISTINCT l.eventDate FROM LocationActivityScore l WHERE l.activity.name = :activityName")
-    List<LocalDate> findAvailableDatesByActivity(@Param("activityName") String activityName);
-
-    // Available times for the activity on a given date
-    @Query("SELECT DISTINCT l.eventTime FROM LocationActivityScore l WHERE l.activity.name = :activityName AND l.eventDate = :eventDate")
+    @Query("""
+        SELECT DISTINCT l.eventTime
+          FROM LocationActivityScore l
+         WHERE l.activity.name = :activityName
+           AND l.eventDate = :eventDate
+    """)
     List<LocalTime> findAvailableTimesByActivityAndDate(
             @Param("activityName") String activityName,
             @Param("eventDate") LocalDate eventDate
     );
 
-    // Count records with ML predictions
-    @Query("SELECT COUNT(l) FROM LocationActivityScore l WHERE l.museScore IS NOT NULL")
+    @Query("""
+        SELECT COUNT(l)
+          FROM LocationActivityScore l
+         WHERE l.museScore IS NOT NULL
+    """)
     Long countRecordsWithMLPredictions();
 
-    // Count records with historical data
-    @Query("SELECT COUNT(l) FROM LocationActivityScore l WHERE l.historicalActivityScore IS NOT NULL")
+    @Query("""
+        SELECT COUNT(l)
+          FROM LocationActivityScore l
+         WHERE l.historicalActivityScore IS NOT NULL
+    """)
     Long countRecordsWithHistoricalData();
 
-    // used by LocationRecommendationService to load all relevant records
     List<LocationActivityScore> findByActivityIdAndEventDateAndEventTime(
             UUID activityId,
             LocalDate eventDate,
