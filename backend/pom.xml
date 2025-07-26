@@ -26,9 +26,9 @@
         <maven.testcontainers.version>1.19.6</maven.testcontainers.version>
 
         <sonar.coverage.exclusions>
-         **/manhattan/config/**,                                 <!-- AsyncConfig, SecurityConfig, WebConfig -->
-        **/manhattan/util/**,                                    <!-- LocationNameUtils -->
-        **/manhattan/service/DailyPrecomputationService.java     <!-- DailyPrecomputationService -->
+         **/com/creativespacefinder/manhattan/config/**,  
+         **/com/creativespacefinder/manhattan/util/**,   
+         **/com/creativespacefinder/manhattan/service/DailyPrecomputationService.java
         </sonar.coverage.exclusions>
     </properties>
 
