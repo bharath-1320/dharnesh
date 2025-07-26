@@ -13,7 +13,7 @@ pipeline {
     PROJECT_ID                    = "${AR_PROJECT}"
     CLUSTER_NAME                  = "cluster-1"
     LOCATION                      = "us-west2-a"
-    SONAR_TOKEN                   = "sqp_54fb3425a4ea1d6454a9c76de8cc44028bc47ef2"
+    SONAR_TOKEN                   = "sqp_30d2d41a1838efffd6848fbc7d752912468f0475"
 
     SPRING_DATASOURCE_URL                = "jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
     SPRING_DATASOURCE_USERNAME           = "postgres.yfigmcasvrvubowgxauv"
@@ -81,8 +81,10 @@ pipeline {
                   test \
                   org.jacoco:jacoco-maven-plugin:report \
                   sonar:sonar \
-                  -Dsonar.login=${SONAR_TOKEN} \
-                  -DskipITs
+                  -Dsonar.token=${SONAR_TOKEN} \
+                  -Dsonar.projectKey=manhattan-backend \
+                  -Dsonar.projectName="manhattan-backend" \
+                  -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
               '''
             }
           }
