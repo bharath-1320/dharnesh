@@ -33,7 +33,7 @@
           **/com/creativespacefinder/manhattan/service/AnalyticsService.java,
           **/com/creativespacefinder/manhattan/service/ConnectionCleanupService.java,
           **/com/creativespacefinder/manhattan/service/SystemHealthService.java
-          **/com/creativespacefinder/manhattan/CreativeSpaceFinderApplication.java
+          <!-- **/com/creativespacefinder/manhattan/CreativeSpaceFinderApplication.java -->
         </sonar.coverage.exclusions>
     </properties>
 
