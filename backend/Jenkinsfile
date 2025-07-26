@@ -129,6 +129,9 @@ pipeline {
                 verify \
                 org.jacoco:jacoco-maven-plugin:report \
                 sonar:sonar \
+                -Dspring.profiles.active=test \
+                -DskipUTs \
+                -DskipITs \
                 -Dsonar.login=${SONAR_TOKEN} \
                 -Dsonar.projectKey=manhattan \
                 -Dsonar.projectName="manhattan" \
