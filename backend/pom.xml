@@ -24,6 +24,12 @@
     <properties>
         <java.version>21</java.version>
         <maven.testcontainers.version>1.19.6</maven.testcontainers.version>
+
+        <sonar.coverage.exclusions>
+         **/manhattan/config/**,                                 <!-- AsyncConfig, SecurityConfig, WebConfig -->
+        **/manhattan/util/**,                                    <!-- LocationNameUtils -->
+        **/manhattan/service/DailyPrecomputationService.java     <!-- DailyPrecomputationService -->
+        </sonar.coverage.exclusions>
     </properties>
 
     <repositories>
