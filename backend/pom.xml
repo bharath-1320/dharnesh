@@ -30,10 +30,11 @@
           **/com/creativespacefinder/manhattan/utils/**,
           **/com/creativespacefinder/manhattan/service/DailyPrecomputationService.java,
           **/com/creativespacefinder/manhattan/controller/AnalyticsController.java,
+          **/com/creativespacefinder/manhattan/entity/MLPredictionLog.java
           **/com/creativespacefinder/manhattan/service/AnalyticsService.java,
           **/com/creativespacefinder/manhattan/service/ConnectionCleanupService.java,
           **/com/creativespacefinder/manhattan/service/SystemHealthService.java
-          <!-- **/com/creativespacefinder/manhattan/CreativeSpaceFinderApplication.java -->
+          <!-- **/com/creativespacefinder/manhattan/CreativeSpaceFinderApplication.java  -->
         </sonar.coverage.exclusions>
     </properties>
 
