@@ -27,7 +27,7 @@
 
         <sonar.coverage.exclusions>
           **/com/creativespacefinder/manhattan/config/**,
-          **/com/creativespacefinder/manhattan/util/**,
+          **/com/creativespacefinder/manhattan/utils/**,
           **/com/creativespacefinder/manhattan/service/DailyPrecomputationService.java,
           **/com/creativespacefinder/manhattan/controller/AnalyticsController.java,
           **/com/creativespacefinder/manhattan/service/AnalyticsService.java,
