@@ -1,169 +1,3 @@
-// package com.creativespacefinder.manhattan.controller;
-
-// import com.creativespacefinder.manhattan.service.DailyPrecomputationService;
-// import jakarta.servlet.http.HttpSession;
-// import org.junit.jupiter.api.DisplayName;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-// import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-// import org.springframework.test.context.DynamicPropertySource;
-// import org.springframework.test.context.DynamicPropertyRegistry;
-// import org.springframework.boot.test.mock.mockito.MockBean;
-// import org.springframework.context.annotation.Import;
-// import org.springframework.http.MediaType;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-// import org.springframework.test.context.DynamicPropertyRegistry;
-// import org.springframework.test.web.servlet.MockMvc;
-// import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-
-// import static org.mockito.Mockito.*;
-// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-// @WebMvcTest(AdminController.class)
-// @AutoConfigureMockMvc(addFilters = false)
-// @Import(BCryptPasswordEncoder.class)
-// class AdminControllerTest {
-
-//     @Autowired
-//     private MockMvc mvc;
-
-//     @MockBean
-//     private DailyPrecomputationService dailyPrecomputationService;
-
-//     // these values get injected into @Value fields in AdminController
-//     private static final String ADMIN_USER = "adminUser";
-//     private static final String ADMIN_PASS = "secretPass";
-
-//     @DynamicPropertySource
-//     static void setAdminProps(DynamicPropertyRegistry reg) {
-//         String hashed = new BCryptPasswordEncoder().encode(ADMIN_PASS);
-//         reg.add("admin.username",      () -> ADMIN_USER);
-//         reg.add("admin.password.hash", () -> hashed);
-//     }
-
-//     private String loginJson(String user, String pass) {
-//         return String.format("{\"username\":\"%s\",\"password\":\"%s\"}", user, pass);
-//     }
-
-//     @Test
-//     @DisplayName("POST /api/admin/login → 200 + session attributes + body")
-//     void login_success() throws Exception {
-//         mvc.perform(post("/api/admin/login")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content(loginJson(ADMIN_USER, ADMIN_PASS)))
-//                 .andExpect(status().isOk())
-//                 .andExpect(jsonPath("$.success").value(true))
-//                 .andExpect(jsonPath("$.message").value("Login successful"))
-//                 .andExpect(jsonPath("$.sessionId").isNotEmpty());
-//     }
-
-//     @Test
-//     @DisplayName("POST /api/admin/login wrong password → 401 Unauthorized")
-//     void login_badCredentials() throws Exception {
-//         mvc.perform(post("/api/admin/login")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content(loginJson(ADMIN_USER, "wrong")))
-//                 .andExpect(status().isUnauthorized())
-//                 .andExpect(jsonPath("$.success").value(false))
-//                 .andExpect(jsonPath("$.message").value("Invalid credentials"));
-//     }
-
-//     @Test
-//     @DisplayName("POST /api/admin/logout → 200 + success body")
-//     void logout_alwaysSucceeds() throws Exception {
-//         mvc.perform(post("/api/admin/logout"))
-//                 .andExpect(status().isOk())
-//                 .andExpect(jsonPath("$.success").value(true))
-//                 .andExpect(jsonPath("$.message").value("Logout successful"));
-//     }
-
-//     @Test
-//     @DisplayName("GET /api/admin/validate-session without login → 401")
-//     void validateSession_withoutLogin() throws Exception {
-//         mvc.perform(get("/api/admin/validate-session"))
-//                 .andExpect(status().isUnauthorized())
-//                 .andExpect(jsonPath("$.valid").value(false));
-//     }
-
-//     @Test
-//     @DisplayName("GET /api/admin/validate-session after login → 200 + valid=true")
-//     void validateSession_afterLogin() throws Exception {
-//         // perform login to set session attributes
-//         MockHttpServletRequestBuilder login = post("/api/admin/login")
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(loginJson(ADMIN_USER, ADMIN_PASS));
-//         var mvcResult = mvc.perform(login).andReturn();
-
-//         HttpSession session = mvcResult.getRequest().getSession(false);
-
-//         mvc.perform(get("/api/admin/validate-session")
-//                         .session((org.springframework.mock.web.MockHttpSession) session))
-//                 .andExpect(status().isOk())
-//                 .andExpect(jsonPath("$.valid").value(true))
-//                 .andExpect(jsonPath("$.username").value(ADMIN_USER));
-//     }
-
-//     @Test
-//     @DisplayName("POST /api/admin/warm-cache without auth → 401")
-//     void warmCache_unauthenticated() throws Exception {
-//         mvc.perform(post("/api/admin/warm-cache"))
-//                 .andExpect(status().isUnauthorized())
-//                 .andExpect(content().string("Authentication required"));
-//         verifyNoInteractions(dailyPrecomputationService);
-//     }
-
-//     @Test
-//     @DisplayName("POST /api/admin/warm-cache with auth → 200 + service called")
-//     void warmCache_authenticated() throws Exception {
-//         // login first
-//         var loginResult = mvc.perform(post("/api/admin/login")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content(loginJson(ADMIN_USER, ADMIN_PASS)))
-//                 .andReturn();
-//         var session = loginResult.getRequest().getSession(false);
-
-//         mvc.perform(post("/api/admin/warm-cache")
-//                         .session((org.springframework.mock.web.MockHttpSession) session))
-//                 .andExpect(status().isOk())
-//                 .andExpect(content().string(
-//                         "Cache warming started successfully in background!\n\n" +
-//                                 "Process Duration: ~10-15 minutes\n" +
-//                                 "Runs in background - you can continue using the app\n" +
-//                                 "Cache will be populated automatically when complete"
-//                 ));
-
-//         // match the async call your controller makes
-//         verify(dailyPrecomputationService, times(1)).triggerAsyncDailyPrecomputation();
-//     }
-
-//     @Test
-//     @DisplayName("GET /api/admin/cache-status without auth → 401")
-//     void cacheStatus_unauthenticated() throws Exception {
-//         mvc.perform(get("/api/admin/cache-status"))
-//                 .andExpect(status().isUnauthorized())
-//                 .andExpect(content().string("Authentication required"));
-//     }
-
-//     @Test
-//     @DisplayName("GET /api/admin/cache-status with auth → 200 + info text")
-//     void cacheStatus_authenticated() throws Exception {
-//         // login first
-//         var loginResult = mvc.perform(post("/api/admin/login")
-//                         .contentType(MediaType.APPLICATION_JSON)
-//                         .content(loginJson(ADMIN_USER, ADMIN_PASS)))
-//                 .andReturn();
-//         var session = loginResult.getRequest().getSession(false);
-
-//         mvc.perform(get("/api/admin/cache-status")
-//                         .session((org.springframework.mock.web.MockHttpSession) session))
-//                 .andExpect(status().isOk())
-//                 .andExpect(content().string("Daily cache warming runs at 3 AM every day. Check logs for details."));
-//     }
-// }
-
-//-----------------------------------------------------
 package com.creativespacefinder.manhattan.controller;
 
 import com.creativespacefinder.manhattan.service.DailyPrecomputationService;
@@ -188,6 +22,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -277,8 +112,16 @@ class AdminControllerTest {
             clearInvocations(dailyPrecomputationService);
         }
 
+        private void stubWarmService() {
+            // triggerAsyncDailyPrecomputation() is non-void, so we must return something:
+            doReturn(null)
+                    .when(dailyPrecomputationService)
+                    .triggerAsyncDailyPrecomputation();
+        }
+
         @Test @DisplayName("POST /warm-cache no auth → 401")
         void warm_noAuth() throws Exception {
+            stubWarmService();
             MockHttpSession empty = new MockHttpSession();
             mvc.perform(post("/api/admin/warm-cache").session(empty))
                     .andExpect(status().isUnauthorized())
@@ -288,6 +131,7 @@ class AdminControllerTest {
 
         @Test @DisplayName("POST /warm-cache with auth → 200")
         void warm_withAuth() throws Exception {
+            stubWarmService();
             MockHttpSession sess = login();
             mvc.perform(post("/api/admin/warm-cache").session(sess))
                     .andExpect(status().isOk())
@@ -297,6 +141,7 @@ class AdminControllerTest {
 
         @Test @DisplayName("GET /cache-status no auth → 401")
         void status_noAuth() throws Exception {
+            stubWarmService();
             MockHttpSession empty = new MockHttpSession();
             mvc.perform(get("/api/admin/cache-status").session(empty))
                     .andExpect(status().isUnauthorized())
@@ -305,6 +150,7 @@ class AdminControllerTest {
 
         @Test @DisplayName("GET /cache-status with auth → 200")
         void status_withAuth() throws Exception {
+            stubWarmService();
             MockHttpSession sess = login();
             mvc.perform(get("/api/admin/cache-status").session(sess))
                     .andExpect(status().isOk())
@@ -405,6 +251,8 @@ class AdminControllerTest {
         }
     }
 }
+
+
 
 
 
